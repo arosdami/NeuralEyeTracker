@@ -838,6 +838,8 @@ class MainWindow(QMainWindow):
         )
 
     def _check_for_updates(self):
+        from PyQt5.QtCore import QTimer
+
         manager = UpdateManager()
         available, version, setup_url, page = manager.check()
         if not available:
@@ -872,15 +874,18 @@ class MainWindow(QMainWindow):
         if answer != QMessageBox.Yes:
             return
         try:
-            path = manager.download_and_launch(setup_url)
+            path = manager.download(setup_url)
         except OSError as error:
             QMessageBox.critical(self, "Frissítési hiba", str(error))
             return
         QMessageBox.information(
             self,
             "Frissítés",
-            f"A telepítő letöltve:\n{path}\n\nA frissítés a telepítő bezárása után fejeződik be.",
+            "A telepítő letöltése elkészült. Az alkalmazás most bezárul, "
+            "majd elindul a frissítő telepítő.",
         )
+        self.close()
+        QTimer.singleShot(300, lambda: manager.launch_installer(path))
 
     def _save_project_as(self):
         if not self.project_data:
