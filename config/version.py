@@ -1,6 +1,6 @@
 """Application version and release metadata."""
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 GITHUB_OWNER = "arosdami"
 GITHUB_REPOSITORY = "NeuralEyeTracker"
 GITHUB_RELEASES_API = (

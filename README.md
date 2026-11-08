@@ -55,7 +55,7 @@ The installer is created at `installer\NeuralEyeTracker-Setup.exe`.
 
 ## Updates
 
-The application checks the latest GitHub Release from
-`arosdami/NeuralEyeTracker`. Publish the installer as a release asset whose
-filename contains `Setup` and ends in `.exe`. The application can then download
-and launch the installer from the Help menu or the System page.
+Updates are read from the GitHub Releases of `arosdami/NeuralEyeTracker`.
+Make this repository public and publish each installer as a Release asset
+whose filename contains `Setup` and ends in `.exe`. The application can then
+download and launch the installer from the Help menu or the System page.

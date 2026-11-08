@@ -14,9 +14,11 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QMessageBox,
     QPushButton,
+    QTabWidget,
     QVBoxLayout,
 )
 
+from config.settings import PALETTE
 from core.project_manager import (
     create_project,
     load_project,
@@ -33,27 +35,160 @@ class ProjectDialog(QDialog):
         self.project = None
         self.project_path = ""
         self.setWindowTitle("Neural Eye Tracker | Projekt és páciens")
-        self.setMinimumWidth(560)
+        self.setMinimumSize(680, 560)
         self.setModal(True)
         self._build_ui()
         self._refresh_recent()
 
     def _build_ui(self):
         root = QVBoxLayout(self)
+        root.setContentsMargins(28, 24, 28, 24)
+        root.setSpacing(14)
+
         title = QLabel("Mérés előkészítése")
         title.setObjectName("dialogTitle")
         root.addWidget(title)
-        subtitle = QLabel("Hozzon létre vagy nyisson meg egy projektet a folytatáshoz.")
+        subtitle = QLabel("Válasszon projektet, majd adja meg a vizsgálathoz szükséges páciensadatokat.")
         subtitle.setObjectName("dialogSubtitle")
         root.addWidget(subtitle)
 
+        self.tabs = QTabWidget()
+        self.tabs.setObjectName("setupTabs")
+        self.tabs.addTab(self._build_project_tab(), "Projekt")
+        self.tabs.addTab(self._build_patient_tab(), "Páciens")
+        root.addWidget(self.tabs, stretch=1)
+
+        footer = QHBoxLayout()
+        footer.setContentsMargins(0, 4, 0, 0)
+        footer.addStretch()
+        self.continue_button = QPushButton("Projekt megnyitása")
+        self.continue_button.setObjectName("primaryButton")
+        self.continue_button.clicked.connect(self._continue)
+        footer.addWidget(self.continue_button)
+        root.addLayout(footer)
+
+        self.setStyleSheet(
+            f"""
+            QDialog {{
+                background: {PALETTE['bg_primary']};
+            }}
+            QLabel#dialogTitle {{
+                color: {PALETTE['text_primary']};
+                font-size: 24px;
+                font-weight: 700;
+            }}
+            QLabel#dialogSubtitle {{
+                color: {PALETTE['text_secondary']};
+                font-size: 12px;
+                padding-bottom: 4px;
+            }}
+            QTabWidget#setupTabs::pane {{
+                background: {PALETTE['bg_secondary']};
+                border: 1px solid {PALETTE['border']};
+                border-radius: 12px;
+                top: -1px;
+            }}
+            QTabWidget#setupTabs QTabBar {{
+                qproperty-drawBase: 0;
+            }}
+            QTabWidget#setupTabs QTabBar::tab {{
+                background: transparent;
+                color: {PALETTE['text_muted']};
+                border: none;
+                border-bottom: 2px solid transparent;
+                padding: 11px 22px;
+                margin-right: 8px;
+                font-size: 13px;
+                font-weight: 600;
+            }}
+            QTabWidget#setupTabs QTabBar::tab:hover {{
+                color: {PALETTE['text_primary']};
+            }}
+            QTabWidget#setupTabs QTabBar::tab:selected {{
+                color: {PALETTE['accent_primary']};
+                border-bottom: 2px solid {PALETTE['accent_primary']};
+            }}
+            QFrame#setupCard {{
+                background: {PALETTE['bg_card']};
+                border: 1px solid {PALETTE['border']};
+                border-radius: 10px;
+            }}
+            QLabel#sectionTitle {{
+                color: {PALETTE['text_primary']};
+                font-size: 14px;
+                font-weight: 700;
+            }}
+            QLabel#sectionHint {{
+                color: {PALETTE['text_secondary']};
+                font-size: 11px;
+            }}
+            QLineEdit, QComboBox, QListWidget {{
+                background: {PALETTE['bg_input']};
+                color: {PALETTE['text_primary']};
+                border: 1px solid {PALETTE['border_light']};
+                border-radius: 7px;
+                padding: 8px 10px;
+                min-height: 18px;
+            }}
+            QLineEdit:focus, QComboBox:focus, QListWidget:focus {{
+                border: 1px solid {PALETTE['accent_primary']};
+            }}
+            QListWidget {{
+                padding: 4px;
+            }}
+            QListWidget::item {{
+                padding: 9px;
+                border-radius: 5px;
+            }}
+            QListWidget::item:selected {{
+                background: {PALETTE['accent_primary']};
+                color: {PALETTE['text_inverse']};
+            }}
+            QPushButton {{
+                background: {PALETTE['bg_elevated']};
+                color: {PALETTE['text_primary']};
+                border: 1px solid {PALETTE['border_light']};
+                border-radius: 7px;
+                padding: 9px 14px;
+                font-weight: 600;
+            }}
+            QPushButton:hover {{
+                background: {PALETTE['accent_primary']};
+                border-color: {PALETTE['accent_primary']};
+            }}
+            QPushButton#primaryButton {{
+                background: {PALETTE['accent_primary']};
+                border-color: {PALETTE['accent_primary']};
+                padding: 10px 24px;
+            }}
+            QPushButton#primaryButton:hover {{
+                background: {PALETTE['accent_hover']};
+            }}
+            """
+        )
+
+    def _build_project_tab(self):
+        page = QVBoxLayout()
+        page.setContentsMargins(22, 22, 22, 22)
+        page.setSpacing(14)
+
+        intro = QLabel("Projekt kiválasztása")
+        intro.setObjectName("sectionTitle")
+        page.addWidget(intro)
+        hint = QLabel("Hozzon létre új projektet, nyisson meg egy meglévőt, vagy folytasson egy korábbi munkamenetet.")
+        hint.setObjectName("sectionHint")
+        hint.setWordWrap(True)
+        page.addWidget(hint)
+
         project_form = QFormLayout()
+        project_form.setSpacing(10)
         self.project_name = QLineEdit()
         self.project_name.setPlaceholderText("pl. Pupillometriai vizsgálat 2026")
         project_form.addRow("Projekt neve *", self.project_name)
-        root.addLayout(project_form)
+        page.addLayout(project_form)
 
         actions = QHBoxLayout()
+        actions.setSpacing(8)
         for text, callback in (
             ("Új projekt", self._new_project),
             ("Projekt megnyitása", self._open_project),
@@ -62,14 +197,32 @@ class ProjectDialog(QDialog):
             button = QPushButton(text)
             button.clicked.connect(callback)
             actions.addWidget(button)
-        root.addLayout(actions)
+        page.addLayout(actions)
 
-        root.addWidget(QLabel("Legutóbbi projektek"))
+        recent_title = QLabel("Legutóbbi projektek")
+        recent_title.setObjectName("sectionTitle")
+        page.addWidget(recent_title)
         self.recent_list = QListWidget()
+        self.recent_list.setMinimumHeight(145)
         self.recent_list.itemDoubleClicked.connect(self._open_recent)
-        root.addWidget(self.recent_list)
+        page.addWidget(self.recent_list, stretch=1)
+        return self._page_widget(page)
+
+    def _build_patient_tab(self):
+        page = QVBoxLayout()
+        page.setContentsMargins(22, 22, 22, 22)
+        page.setSpacing(14)
+
+        intro = QLabel("Páciens adatai")
+        intro.setObjectName("sectionTitle")
+        page.addWidget(intro)
+        hint = QLabel("A mérés csak az azonosító, név, TAJ-szám és vizsgálati cél megadása után indítható.")
+        hint.setObjectName("sectionHint")
+        hint.setWordWrap(True)
+        page.addWidget(hint)
 
         patient_form = QFormLayout()
+        patient_form.setSpacing(10)
         self.patient_id = QLineEdit()
         self.patient_id.setPlaceholderText("Üresen hagyva automatikusan generálódik")
         patient_form.addRow("Páciensazonosító", self.patient_id)
@@ -84,15 +237,17 @@ class ProjectDialog(QDialog):
         self.gender = QComboBox()
         self.gender.addItems(["Nincs megadva", "Nő", "Férfi", "Egyéb"])
         patient_form.addRow("Nem", self.gender)
-        root.addLayout(patient_form)
+        page.addLayout(patient_form)
+        page.addStretch()
+        return self._page_widget(page)
 
-        footer = QHBoxLayout()
-        footer.addStretch()
-        self.continue_button = QPushButton("Projekt megnyitása")
-        self.continue_button.setProperty("class", "primary")
-        self.continue_button.clicked.connect(self._continue)
-        footer.addWidget(self.continue_button)
-        root.addLayout(footer)
+    @staticmethod
+    def _page_widget(layout):
+        from PyQt5.QtWidgets import QWidget
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        return widget
 
     def _refresh_recent(self):
         self.recent_list.clear()
