@@ -1,0 +1,35 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local application data and generated output
+users.json
+tracker_settings.pkl
+models/*
+reports/*
+
+# Large local media and analysis exports
+/*.mp4
+/*.avi
+/*.mov
+/*.png
+/*.jpg
+/*.jpeg
+
+# Packaging/build output
+build/
+dist/
+build-*/
+dist-*/
+installer/
+/*.spec
+
+# Local development media and generated exports
+/*.mp4
+/*.avi
+/*.mov
+/*.png
+/*.jpg
+/*.jpeg
+tracker_settings.pkl

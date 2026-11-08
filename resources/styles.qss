@@ -1,0 +1,334 @@
+/* resources/styles.qss – Minimalista, professzionális stílus */
+
+* {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+/* ── ALAPOK ── */
+QMainWindow, QDialog {
+    background-color: #f0f0f0;
+}
+
+QWidget {
+    background-color: transparent;
+    color: #333333;
+    font-size: 12px;
+}
+
+/* ── CSOPORTOS DOBOZOK ── */
+QGroupBox {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 0px;
+    margin-top: 14px;
+    padding: 14px 12px 12px 12px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    padding: 0 6px;
+    color: #555555;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ── GOMBOK ── */
+QPushButton {
+    background-color: #e8e8e8;
+    color: #333333;
+    border: 1px solid #bbbbbb;
+    padding: 6px 16px;
+    border-radius: 0px;
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+QPushButton:hover {
+    background-color: #dcdcdc;
+    border-color: #999999;
+}
+
+QPushButton:pressed {
+    background-color: #cccccc;
+    border-color: #888888;
+}
+
+QPushButton:disabled {
+    background-color: #f5f5f5;
+    color: #aaaaaa;
+    border-color: #dddddd;
+}
+
+QPushButton#primary {
+    background-color: #0078d7;
+    border: 1px solid #0060b0;
+    color: white;
+    font-weight: 700;
+}
+
+QPushButton#primary:hover {
+    background-color: #1084e0;
+}
+
+QPushButton#primary:pressed {
+    background-color: #0060b0;
+}
+
+QPushButton#secondary {
+    background-color: #f5f5f5;
+    border: 1px solid #cccccc;
+    color: #555555;
+}
+
+QPushButton#secondary:hover {
+    background-color: #e8e8e8;
+    color: #333333;
+}
+
+QPushButton#danger {
+    background-color: #d32f2f;
+    border: 1px solid #b71c1c;
+    color: white;
+    font-weight: 700;
+}
+
+QPushButton#danger:hover {
+    background-color: #e53935;
+}
+
+QPushButton#danger:pressed {
+    background-color: #b71c1c;
+}
+
+/* ── LEGÖRDÜLŐ LISTA ── */
+QComboBox {
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #bbbbbb;
+    border-radius: 0px;
+    padding: 4px 10px;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+QComboBox:hover {
+    border-color: #888888;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 18px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    selection-background-color: #0078d7;
+    selection-color: white;
+}
+
+/* ── CSÚSZKÁK ── */
+QSlider::groove:horizontal {
+    border: none;
+    height: 4px;
+    background: #dddddd;
+    border-radius: 0px;
+}
+
+QSlider::sub-page:horizontal {
+    background: #0078d7;
+}
+
+QSlider::handle:horizontal {
+    background: #ffffff;
+    border: 1px solid #bbbbbb;
+    width: 12px;
+    height: 12px;
+    margin: -5px 0;
+    border-radius: 0px;
+}
+
+QSlider::handle:horizontal:hover {
+    border-color: #0078d7;
+}
+
+/* ── FÜLEK ── */
+QTabWidget::pane {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    border-radius: 0px;
+}
+
+QTabBar::tab {
+    background-color: #e8e8e8;
+    color: #555555;
+    padding: 6px 16px;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 2px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffffff;
+    color: #333333;
+    border-color: #cccccc;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #dcdcdc;
+}
+
+/* ── STÁTUSZSÁV ── */
+QStatusBar {
+    background-color: #f0f0f0;
+    color: #777777;
+    border-top: 1px solid #cccccc;
+    font-size: 11px;
+    padding: 3px 12px;
+}
+
+/* ── FEJLÉC ── */
+QWidget#headerBar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #cccccc;
+}
+
+QLabel#logoLabel {
+    color: #333333;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+QLabel#versionLabel {
+    color: #999999;
+    font-size: 10px;
+}
+
+QLabel#fpsBadge {
+    background: #f5f5f5;
+    border: 1px solid #dddddd;
+    border-radius: 0px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #555555;
+}
+
+/* ── PANELEK ── */
+QWidget#ControlPanel,
+QWidget#SidePanel,
+QWidget#OverviewPanel {
+    background: transparent;
+}
+
+QGroupBox#panelGroup {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 0px;
+    margin-top: 12px;
+    padding: 12px 10px 10px 10px;
+}
+
+QGroupBox#panelGroup::title {
+    color: #666666;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+}
+
+QLabel#sliderLabel {
+    color: #666666;
+    font-size: 11px;
+}
+
+QLabel#sliderValue {
+    color: #0078d7;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+QLabel#hintLabel {
+    color: #999999;
+    font-size: 10px;
+}
+
+QLabel#descLabel {
+    color: #777777;
+    font-size: 11px;
+}
+
+QLabel#statusLabel {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+QLabel#cameraView {
+    background: #f5f5f5;
+    border: 1px solid #dddddd;
+    border-radius: 0px;
+}
+
+/* ── JELÖLŐNÉGYZET ── */
+QCheckBox {
+    color: #555555;
+    spacing: 6px;
+    font-size: 12px;
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #bbbbbb;
+    border-radius: 0px;
+    background: #ffffff;
+}
+
+QCheckBox::indicator:checked {
+    background: #0078d7;
+    border-color: #0078d7;
+}
+
+QCheckBox:hover {
+    color: #333333;
+}
+
+/* ── GÖRGŐK ── */
+QScrollArea {
+    border: none;
+    background: transparent;
+}
+
+QScrollBar:vertical {
+    width: 6px;
+    background: #f0f0f0;
+    border-radius: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #cccccc;
+    border-radius: 0px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #aaaaaa;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+/* ── ALAP ── */
+#mainRoot {
+    background-color: #f0f0f0;
+}

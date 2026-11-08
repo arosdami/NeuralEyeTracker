@@ -1,0 +1,60 @@
+{
+  "categories": [
+    {
+      "name": "negative",
+      "path": "stimuli\\negative",
+      "images": [
+        "7886_resized_600x.webp",
+        "hollenda_zsolt_parkapcsolati_magany_11.jpg"
+      ],
+      "display_time": 6.0,
+      "repetitions": 1,
+      "random_order": true,
+      "active": true
+    },
+    {
+      "name": "neutral",
+      "path": "stimuli\\neutral",
+      "images": [
+        "Tájkép-a-Naplementében-Háttérkép-93.jpg",
+        "naplementes-tajkep-fali-poszter-2908-4500-thumb755.webp",
+        "tajkep090.jpg"
+      ],
+      "display_time": 5.999999999999994,
+      "repetitions": 1,
+      "random_order": true,
+      "active": true
+    },
+    {
+      "name": "positive",
+      "path": "stimuli\\positive",
+      "images": [
+        "animal7.jpg",
+        "images (1).jpg",
+        "images.jpg"
+      ],
+      "display_time": 5.999999999999994,
+      "repetitions": 1,
+      "random_order": true,
+      "active": true
+    },
+    {
+      "name": "threat",
+      "path": "stimuli\\threat",
+      "images": [],
+      "display_time": 3.0,
+      "repetitions": 1,
+      "random_order": true,
+      "active": false
+    },
+    {
+      "name": "trauma",
+      "path": "stimuli\\trauma",
+      "images": [],
+      "display_time": 3.0,
+      "repetitions": 1,
+      "random_order": true,
+      "active": false
+    }
+  ]
+}
