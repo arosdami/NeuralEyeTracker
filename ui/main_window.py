@@ -838,8 +838,6 @@ class MainWindow(QMainWindow):
         )
 
     def _check_for_updates(self):
-        from PyQt5.QtCore import QTimer
-
         manager = UpdateManager()
         available, version, setup_url, page = manager.check()
         if not available:
@@ -884,8 +882,8 @@ class MainWindow(QMainWindow):
             "A telepítő letöltése elkészült. Az alkalmazás most bezárul, "
             "majd elindul a frissítő telepítő.",
         )
+        manager.launch_installer_after_exit(path)
         self.close()
-        QTimer.singleShot(300, lambda: manager.launch_installer(path))
 
     def _save_project_as(self):
         if not self.project_data:

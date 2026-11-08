@@ -1,6 +1,8 @@
 """GitHub Releases update checks for the installed application."""
 
 import json
+import base64
+import os
 import subprocess
 import tempfile
 import urllib.request
@@ -56,8 +58,27 @@ class UpdateManager:
         return target
 
     @staticmethod
-    def launch_installer(path: Path) -> None:
-        subprocess.Popen([str(path)], close_fds=True)
+    def launch_installer_after_exit(path: Path) -> None:
+        script = (
+            f"$processId = {os.getpid()}; "
+            "while (Get-Process -Id $processId -ErrorAction SilentlyContinue) "
+            "{ Start-Sleep -Milliseconds 200 }; "
+            f"Start-Process -FilePath {str(path)!r}"
+        )
+        encoded = base64.b64encode(script.encode("utf-16le")).decode("ascii")
+        subprocess.Popen(
+            [
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-WindowStyle",
+                "Hidden",
+                "-EncodedCommand",
+                encoded,
+            ],
+            close_fds=True,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
 
     @staticmethod
     def _version_key(version: str) -> tuple:
