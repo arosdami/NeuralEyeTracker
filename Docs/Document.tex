@@ -1,0 +1,1633 @@
+% ============================================================
+% SZAKDOLGOZAT
+% Adaptív neurokognitív architektúrák:
+% Evolutív modellezés és intelligens döntéstámogatás
+% a humán szubjektum védelmében
+% ============================================================
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+% Karakterkódolás és nyelvi beállítások
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[magyar]{babel}
+
+% Betűtípus (Times New Roman) és margók (TVSZ 49. § alapján)
+\usepackage{times}
+\usepackage{geometry}
+\geometry{left=30mm, right=25mm, top=25mm, bottom=25mm}
+
+% Sortávolság (TVSZ 49. §: másfeles)
+\usepackage{setspace}
+\onehalfspacing
+
+% Bekezdések és térközök (a "zsúfoltság" elkerülésére)
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{1.5em} % Túlcsorduló sorok elkerülése
+
+% ============================================================
+% ÉLŐFEJ / ÉLŐLÁB (csak bal fejléc, középső oldalszám)
+% ============================================================
+\usepackage{fancyhdr}
+
+% Alap stílus
+\pagestyle{fancy}
+\fancyhf{} % Minden alapértelmezett fejléc és lábléc törlése
+% Fejléc: Csak a bal oldalon az aktuális fejezet
+\fancyhead[L]{\small\itshape\nouppercase{\leftmark}}
+\fancyhead[R]{} % Jobb oldal üres
+% Lábléc: Csak az oldalszám középen
+\fancyfoot[L]{}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt} % Lábléc vonal eltávolítása
+
+% Sima (plain) oldalak: fejezetkezdő oldalak.
+% Itt a fejlécet üresen hagyjuk (nincs redundáns cím), de az oldalszám marad.
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0pt}
+}
+
+% ============================================================
+% Címek formázása (TVSZ 49. §: fejezet középre, többi balra)
+% ============================================================
+\usepackage{titlesec}
+
+\newcommand{\mychapter}[1]{
+    \begingroup
+    \titleformat{\chapter}[display]
+      {\normalfont\Large\bfseries\centering}
+      {\Roman{chapter}. \chaptertitlename}
+      {10pt}
+      {\Huge}
+      [\vspace{10pt}\rule{0.6\textwidth}{0.5pt}]
+    % A felső margó csökkentése, alsó térköz egy sor
+    \titlespacing*{\chapter}{0pt}{-50pt}{18pt}
+    \chapter{#1}
+    \endgroup
+}
+
+% Szekciók: balra zárt, félkövér, előtte/utána egy sor
+\titleformat{\section}
+  {\normalfont\large\bfseries\raggedright}
+  {\thesection}
+  {1em}
+  {}
+\titlespacing*{\section}{0pt}{18pt}{18pt}
+
+% Alszekciók: balra zárt, félkövér, előtte/utána egy sor
+\titleformat{\subsection}
+  {\normalfont\normalsize\bfseries\raggedright}
+  {\thesubsection}
+  {1em}
+  {}
+\titlespacing*{\subsection}{0pt}{18pt}{12pt}
+
+% Al-alszekciók: balra zárt, dőlt, előtte/utána egy sor
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\itshape\raggedright}
+  {\thesubsubsection}
+  {1em}
+  {}
+\titlespacing*{\subsubsection}{0pt}{12pt}{12pt}
+
+% Tartalomjegyzék formázása
+\usepackage{tocloft}
+\renewcommand{\cfttoctitlefont}{\hfill\Large\bfseries}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftbeforetoctitleskip}{-40pt}
+\renewcommand{\cftaftertoctitleskip}{20pt}
+\renewcommand{\cftchapfont}{\large\bfseries}
+\renewcommand{\cftchappagefont}{\large\bfseries}
+\renewcommand{\cftsecfont}{\normalsize\bfseries}
+\renewcommand{\cftsecpagefont}{\normalsize\bfseries}
+\renewcommand{\cftsubsecfont}{\normalsize}
+\renewcommand{\cftsubsecpagefont}{\normalsize}
+\setlength{\cftbeforechapskip}{6pt}
+\setlength{\cftbeforesecskip}{4pt}
+
+% Ábrák, táblázatok, kódok
+\usepackage{chngcntr}
+\counterwithin{table}{chapter}
+\counterwithin{figure}{chapter}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{listings}
+\captionsetup{font=small, labelfont=bf, labelsep=period, skip=8pt, justification=centering}
+
+% Python-forráskódok egységes, nyomtatható megjelenítése
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue!70!black}\bfseries,
+    commentstyle=\color{green!45!black}\itshape,
+    stringstyle=\color{red!60!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    frame=single,
+    framesep=5pt,
+    rulecolor=\color{black!20},
+    backgroundcolor=\color{black!2},
+    breaklines=true,
+    columns=fullflexible,
+    showstringspaces=false,
+    keepspaces=true
+}
+
+% Matematikai csomagok
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+
+% TikZ
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds,calc,shadows,decorations.pathreplacing,patterns}
+\tikzset{
+    block/.style={rectangle, draw=blue!70!black, thick, fill=blue!5, text width=4cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\sffamily, drop shadow={opacity=0.2}},
+    arrow/.style={thick, ->, >=stealth, draw=black!70},
+    concept/.style={rectangle, draw=purple!70!black, thick, fill=purple!5, text width=5.5cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\sffamily},
+    human/.style={rectangle, draw=red!70!black, thick, fill=red!5, text width=5.5cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\sffamily\bfseries},
+    decision/.style={diamond, draw=orange!80!black, thick, fill=orange!10, aspect=1.5, text width=2.5cm, align=center, inner sep=1pt, font=\small\sffamily},
+}
+
+\raggedbottom
+
+\begin{document}
+
+% ============================================================
+% MARKOLATOK FELÜLÍRÁSA
+% ============================================================
+\renewcommand{\chaptermark}[1]{\markboth{\Roman{chapter}.~#1}{}}
+\renewcommand{\sectionmark}[1]{} % Nem használjuk a szekciókat a fejlécben
+
+% ============================================================
+% CÍMLAP — nincs oldalszám, nincs fejléc/lábléc
+% ============================================================
+\begin{titlepage}
+    \centering
+    
+    \vspace*{1cm}
+    {\large \textbf{TOKAJ-HEGYALJA EGYETEM}}\\[0.5cm]
+    {\large \textbf{Programtervező informatikus BSc szak}}\\[2cm]
+    
+    \vspace*{3cm}
+    
+    {\LARGE \textbf{ADAPTÍV NEUROKOGNITÍV ARCHITEKTÚRÁK}}\\[0.5cm]
+    {\large Evolutív modellezés és intelligens döntéstámogatás a humán szubjektum védelmében}\\[3cm]
+    
+    \vfill
+    
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \textbf{Konzulens:}\\[0.2cm]
+        Dr. Kéri Szabolcs\\
+        rektor, egyetemi tanár
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \textbf{Készítette:}\\[0.2cm]
+        Aros Damján\\
+        programtervező informatikus\\
+        hallgató
+    \end{minipage}
+    
+    \vspace*{2.5cm}
+    {\large \textbf{SÁROSPATAK}}\\[0.3cm]
+    {\large \textbf{2027}}
+    
+    \vspace*{0.5cm}
+\end{titlepage}
+
+% ============================================================
+% KIVONAT
+% ============================================================
+\chapter*{\vspace*{-2cm}Kivonat}
+\addcontentsline{toc}{chapter}{Kivonat}
+\markboth{KIVONAT}{}
+\vspace*{-0.5cm}
+
+ Mind a korszerű katonai műveletvezetésben, mind a nagy felelősséggel járó klinikai diagnosztikában alapvető kihívást jelent a döntéshozó kognitív állapotának valós idejű, objektív nyomon követése. Bár a mesterséges intelligencia (MI) rohamos fejlődése - az onkológiai szűrésektől a prediktív betegségmodellezésen át a digitális patológiáig - alapjaiban formálta át az orvosi diagnosztikát, az új technológiák élesebb fénnyel világítottak rá az emberi tényező sérülékenységére is. Amikor egy szakorvos vagy egy harctéri operátor mentálisan kimerül, figyelmi kapacitása beszűkül, ami úgynevezett „csendes hibázáshoz” vezethet: a munkavégzés tempója látszólag változatlan marad, miközben a döntések pontossága kritikus mértékben romlik.
+
+Jelen szakdolgozat egy olyan adaptív neurokognitív architektúra elméleti és rendszerszintű megalapozását mutatja be, amely a szemmozgások és a pupilladinamika valós idejű elemzésére támaszkodva nyújt intelligens döntéstámogatást. A rendszertervezés vezérelve mindvégig a humán szubjektum - a döntéshozó és az érintett páciens vagy katona - védelme volt. A dolgozat öt szerves egységre tagolódik. Az első fejezet a tágabb szakmai kontextust vázolja fel az MI-alapú orvosi rendszerek (rákszűrés, korai előrejelző modellek, szövettani elemzés és gyógyszerkutatás) áttekintésével, különös tekintettel a humán-gép együttműködés kognitív korlátaira. A második fejezet a javasolt okulometriás architektúra felépítését részletezi: tárgyalja a pupillometria neurofiziológiai hátterét, a videó-alapú szemkövetés módszertanát, a kognitív architektúrák (ACT-R) és a neuroevolúciós modellezés (NEAT) elméletét, valamint a zárt hurkú monitorozás pszichológiai hatásait. A harmadik fejezet a megvalósított szoftverrendszer specifikációját és mérési adatfolyamát írja le. A negyedik fejezet a honvédelmi és klinikai alkalmazási területeket elemzi, az ötödik pedig az adatvédelmi, neuroetikai és validációs keretrendszert dolgozza ki.
+
+A kutatás legfőbb hozzáadott értéke, hogy a humán szubjektum védelmét nem elvont etikai deklarációként, hanem konkrét, mérnöki szinten operacionalizált tervezési módszertanként értelmezi. Az olyan beépített mechanizmusok, mint a kalibrált lassítás, a fokozatos és visszavonható harctéri feladatdelegálás, valamint a kognitív compliance audit garantálják, hogy a technológia ne váltsa ki, hanem tehermentesítse és megóvja az emberi döntéshozót.
+
+\vspace{0.3cm}
+\textbf{Kulcsszavak:} pupillometria, szemkövetés, kognitív monitorozás, adaptív neurokognitív architektúra, NEAT, döntéstámogatás, klinikai diagnosztika, katonai alkalmazás, humán tényezők, kognitív szuverenitás, meaningful human control
+
+\vspace{1cm}
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{ABSTRACT}{}
+
+A shared, critical challenge in both contemporary military command and high-stakes clinical diagnostics is the objective, real-time monitoring of the human operator's cognitive state. While the rapid integration of artificial intelligence (AI) across medical diagnostics - ranging from oncology screening and clinical early-warning systems to computational pathology - has unlocked unprecedented analytical capabilities, it has simultaneously exposed the fragility of the human factor. When a clinical specialist or tactical operator experiences acute mental fatigue or cognitive overload, they become prone to "silent failures," maintaining their usual operational pace while suffering a marked decline in diagnostic or tactical accuracy.
+
+This thesis establishes the conceptual and architectural foundations of an adaptive neurocognitive system designed to deliver intelligent decision support via real-time oculometric and pupillometric analysis, placing the protection of the human subject at the core of its engineering philosophy. The study is structured into five chapters. The first chapter outlines the broader technological landscape, reviewing state-of-the-art AI diagnostic tools and examining how human cognitive bottlenecks limit human-AI synergy. The second chapter details the proposed oculometric architecture, covering the neurophysiological basis of pupillometry, video-based eye-tracking methodologies, cognitive architectures (ACT-R), neuroevolutionary topology optimization (NEAT), and the psychological dynamics of closed-loop monitoring. The third chapter explains the implemented intelligent core, including feature extraction, normalization, neural regression, optimization and parameterization. The fourth chapter explores dual-use applications across military operations and clinical psychiatry/neurology. The fifth chapter addresses data privacy, neuroethics, and system validation, integrating the principles of cognitive sovereignty, neurorights, and meaningful human control.
+
+The primary novelty of this work lies in translating the protection of the human subject from a philosophical ideal into an operationalized design methodology through mechanisms such as calibrated deceleration, reversible tactical delegation, and cognitive compliance auditing.
+
+\vspace{0.3cm}
+\textbf{Keywords:} pupillometry, eye-tracking, cognitive monitoring, adaptive neurocognitive architecture, NEAT, decision support, clinical diagnostics, military applications, human factors, cognitive sovereignty, meaningful human control
+
+\newpage
+\renewcommand{\contentsname}{Tartalomjegyzék}
+\tableofcontents
+\thispagestyle{empty}
+
+% ============================================================
+% BEVEZETÉS
+% ============================================================
+\newpage
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{BEVEZETÉS ÉS PROBLÉMAFELVETÉS}
+\markboth{BEVEZETÉS ÉS PROBLÉMAFELVETÉS}{}
+\begin{center}
+    \vspace*{1cm}
+    {\LARGE \textbf{BEVEZETÉS ÉS PROBLÉMAFELVETÉS}}
+    \vspace*{1cm}
+\end{center}
+
+A nagy téttel bíró operatív és döntéshozatali környezetekben - legyen szó összetett harctéri műveletekről, sürgősségi klinikai ellátásról vagy kritikus infrastruktúrák felügyeletéről - a döntéshozó pillanatnyi kognitív állapota közvetlenül meghatározza a kimenetel biztonságát. Mivel az emberi figyelmi kapacitás és munkamemória szigorú biológiai korlátok közé szorított \cite{kahneman1973, cowan2010}, a mentális terhelés ingadozása azonnali hatással van a hibázási rátára. A gyakorlatban jelenleg alkalmazott állapotfelmérő eljárások túlnyomórészt szubjektív önbevallásra és utólagos kérdőívekre támaszkodnak, amelyek megbízhatósága éles helyzetben erősen korlátozott. Ezek a módszerek ugyanis képtelenek valós időben lekövetni a tudatküszöb alatti, prefrontális és vegetatív önszabályozó folyamatokat. A klinikai pszichiátriában és neurológiában a páciens visszajelzéseit gyakran torzítja a szociális megfelelési kényszer, a betegségbelátás hiánya vagy maga a kognitív deficit. Hasonlóan problematikus a helyzet a honvédelmi alkalmazások terén is: egy harctéri stressznek és alvásmegvonásnak kitett katona önértékelése nem tekinthető objektív mérceként, hiszen az akut kimerültség éppen azt a metakognitív önreflexiós képességet építi le, amely a saját korlátok felismeréséhez lenne szükséges.
+
+A mentális terhelés, a figyelmi fókusz és a stressz objektív, non-invazív mérése ezért az elmúlt években a kognitív idegtudomány és a mérnöki informatika egyik legfontosabb közös kutatási irányává lépett elő \cite{eckstein2017}. A képfeldolgozó algoritmusok és a gépi tanulás fejlődése ma már lehetővé teszi, hogy finom fiziológiai jelekből - különösen a szemmozgásokból és a pupilla átmérőjének mikrováltozásaiból - valós időben becsüljük meg a központi idegrendszer terheltségét. A kihívás azonban messze túlmutat a puszta jelfeldolgozási pontosságon. Az emberi mentális állapot folyamatos monitorozása érzékenyen érinti az egyén autonómiáját, mentális magánszféráját és emberi méltóságát. Egy ilyen rendszer mérnöki tervezése csak akkor tekinthető felelősnek, ha a humán szubjektum védelmét nem utólagos etikai korrekcióként, hanem az architektúra alapvető felépítését meghatározó tervezési vezérelvként kezeli.
+
+\vspace{0.5cm}
+\newpage
+\noindent\textbf{\large A kutatás célkitűzései}
+\vspace{0.5cm}
+
+Jelen szakdolgozat alapvető célkitűzése egy olyan adaptív neurokognitív architektúra koncepcionális modelljének kidolgozása, amely a videó-alapú szemkövetés és a kvantitatív pupillometria valós idejű fúziójával biztosít intelligens döntéstámogatást. A kutatás kettős alkalmazási fókusza szorosan illeszkedik a téma interdiszciplináris jellegéhez, valamint a szerző informatikai és honvédelmi szakmai érdeklődéséhez:
+
+Egyfelől a \emph{katonai döntéstámogatás és műveletvezetés} területén a cél a harctéri kognitív terhelés és a szenzomotoros válaszreakciók objektív számszerűsítése, amellyel visszaszoríthatók a kimerültségből és az információs túlterhelésből eredő operátori hibák. Amennyiben a vezetési pont vagy a parancsnok valós idejű, megbízható visszajelzést kap a beosztott állomány kognitív tartalékairól, lehetőség nyílik a proaktív beavatkozásra - legyen szó a feladatok dinamikus újraelosztásáról, a rotáció elrendeléséről vagy az autonóm támogatórendszerek fokozatos bevonásáról.
+
+Másfelől a \emph{klinikai diagnosztika} területén a dolgozat célja olyan okulometriás digitális biomarkerek rendszerezése, amelyek elősegíthetik a szkizofrénia spektrumzavar, a poszttraumás stressz zavar (PTSD), valamint az Alzheimer- és Parkinson-kór korai, akár preklinikai fázisban történő kiszűrését. A pupilladinamika és a tekintetmintázatok kvantitatív elemzése olyan objektív támpontokat nyújthat a szakorvosok számára, amelyek hatékonyan egészítik ki a hagyományos, szubjektív tünetbecslő skálákat. Emellett a rendszer a diagnosztizáló orvos saját figyelmi és fáradtsági állapotának követésével a klinikai tévedések megelőzéséhez is hozzájárul.
+
+A harmadik, mindkét területet összefogó célkitűzés annak bemutatása, miként fordítható le a „humán szubjektum védelme” a szoftver- és rendszerarchitektúra nyelvére. A cél egy olyan működési logika felvázolása, amelyben a mesterséges intelligencia nem csorbítja az emberi döntéshozó szuverenitását, hanem éppen a kognitív korlátok felismerésén és kompenzálásán keresztül erősíti meg azt.
+
+\vspace{0.5cm}
+\noindent\textbf{\large A dolgozat felépítése}
+\vspace{0.5cm}
+
+A dolgozat szerkezete öt fő fejezetre épül. Az \textbf{I. fejezet} a tágabb technológiai és orvosi környezetet tekinti át: bemutatja a modern MI-alapú diagnosztikai megoldásokat az onkológiai képalkotástól a prediktív algoritmusokon és a digitális patológián át a precíziós gyógyszerfejlesztésig, majd rávilágít arra, miért válik a humán szakértő kognitív állapota a teljes rendszer legszűkebb keresztmetszetévé. A \textbf{II. fejezet} a saját okulometriás és neurokognitív architektúra elméleti alapjait tárgyalja. Részletesen kitér a pupillometria neurobiológiai hátterére \cite{beatty1982}, a szemmozgástípusok kognitív jelentőségére, az ACT-R kognitív architektúrára \cite{anderson2007}, a hálózati topológiát evolucionáris úton optimalizáló NEAT algoritmusra \cite{stanley2002}, valamint a megfigyelő hatás és a bizalomkalibráció kérdéskörére. A \textbf{III. fejezet} a bemutatott szoftverrendszer konkrét specifikációját és megvalósítását ismerteti. A \textbf{IV. fejezet} a gyakorlati alkalmazási lehetőségeket bontja ki honvédelmi és klinikai bontásban, külön alfejezetet szentelve a fokozatos harctéri delegálásnak és a fáradtságérzékeny diagnosztikai MI-nek. Végül az \textbf{V. fejezet} az adatvédelmi, neuroetikai és validációs keretrendszert foglalja össze, bevezetve a kalibrált lassítás és a kognitív compliance audit fogalmát.
+
+A munka központi tézise szerint egy megfelelően megtervezett adaptív neurokognitív architektúra nem csupán passzív megfigyelőként működik, hanem aktív védőhálót képez a humán döntéshozó körül. Mivel azonban minden biometrikus és neurokognitív monitorozó technológia hordoz magában visszaélési potenciált, a dolgozat kiemelt hangsúlyt fektet azokra az architekturális fékekre, amelyek garantálják a felhasználó mentális önrendelkezését.
+
+% ============================================================
+% 1. FEJEZET
+% ============================================================
+\mychapter{KONTEXTUS -- MI-ALAPÚ DIAGNOSZTIKAI RENDSZEREK}
+
+\section{RÁKSZŰRÉS ÉS TUMOR-DETEKTÁLÁS}
+
+\subsection{A mesterséges intelligencia térnyerése az orvosi diagnosztikában}
+
+Az elmúlt évtizedben a mesterséges intelligencia - és azon belül is a mélytanulási (deep learning) módszerek - beépülése alapvető paradigmaváltást hozott az orvosi képalkotásban és diagnosztikában. A többrétegű konvolúciós neurális hálózatok (CNN) fejlődése lehetővé tette, hogy a gépi látás mintázatfelismerő képessége számos jól körülhatárolt vizuális feladatban elérje, sőt bizonyos paraméterekben meg is haladja a tapasztalt szakorvosok teljesítményét. Jelen fejezet célja nem az egyes orvosi algoritmusok matematikai részletezése, hanem annak a technológiai ökoszisztémának a felvázolása, amelyben a dolgozat által javasolt okulometriás monitorozó rendszer elhelyezkedik.
+
+Az alábbiakban áttekintett klinikai MI-alkalmazások közös vonása, hogy egyik sem a humán orvos leváltására, hanem diagnosztikai munkájának kiegészítésére törekszik. Ez a szimbiotikus megközelítés jelenti a kiindulópontot a humán szubjektum védelméhez is: a gépi intelligencia akkor tölti be valódi szerepét, ha tehermentesíti a szakembert, és csökkenti a rutinszerű, nagy mennyiségű adatfeldolgozásból fakadó tévedések esélyét.
+
+\subsection{Mammográfiai és tüdőrák-szűrés}
+
+Az onkológiai szűrővizsgálatok terén a képfeldolgozó neurális hálózatok mára a napi klinikai gyakorlat részévé váltak. A mammográfiás emlőrákszűrésben a nagymintás klinikai vizsgálatokban tesztelt mélytanulási modellek képesek olyan korai stádiumú mikromeszesedéseket és finom szöveti aszimmetriákat azonosítani, amelyek a hagyományos, kettős leletezés során is rejtve maradhatnak. Hasonló áttörés figyelhető meg a tüdőrákszűrésben alkalmazott alacsony dózisú CT-felvételek (LDCT) elemzésénél is, ahol a térbeli konvolúciós hálózatok nagy érzékenységgel emelik ki a néhány milliméteres, korai stádiumú tüdőgócokat.
+
+Ezekben a munkafolyamatokban a végső diagnosztikai felelősség továbbra is a radiológus kezében marad, az algoritmus azonban egyfajta „második olvasóként” (second reader) működik. Humánvédelmi szempontból ennek óriási a jelentősége: egy többórás leletezési műszak végén, amikor a szakorvos figyelmi fókuszának lankadása miatt megnő az úgynevezett „csendes hibázás” kockázata, az MI-asszisztencia biztonsági hálóként védi mind a beteget az elmaradt diagnózistól, mind az orvost a szakmai műhibától.
+
+\subsection{Bőrrák-detektálás és dermatoszkópos képfeldolgozás}
+
+A bőrgyógyászati onkológiában a dermatoszkópos felvételek automatizált osztályozása szintén elérte a szakorvosi szintű diagnosztikai pontosságot a melanoma malignum és egyéb hámeredetű bőrdaganatok elkülönítésében. A több százezer annotált bőrlézió képén betanított modellek a pigmenthálózat szabálytalanságai, a színvariációk és a határvonalak aszimmetriája alapján másodpercek alatt képesek kockázati becslést adni, és a gyanús eseteket priorizálva a bőrgyógyász elé tárni.
+
+A nagy betegforgalmú szakrendeléseken, ahol a klinikusnak rövid idő alatt kell nagyszámú anyajegyet átvizsgálnia, a figyelmi kapacitás telítődése komoly korlátot jelent \cite{sweller2011}. Az előszűrő algoritmusok alkalmazása itt nem a szakorvosi kompetencia csorbítását jelenti, hanem a kognitív erőforrások ésszerűsítését: lehetővé teszi, hogy az orvos a mentális energiáját a valóban határesetnek számító, komplex klinikai mérlegelést igénylő képletekre összpontosítsa.
+
+\section{BETEGSÉG-ELŐREJELZÉS ÉS KORAI FIGYELMEZTETÉS}
+
+\subsection{Szepszis predikció és a klinikai döntéstámogatás}
+
+A képalkotó diagnosztikán túl a gépi tanulás a strukturált elektronikus egészségügyi adatok (EHR) idősoros elemzésében is komoly eredményeket mutat fel. Az intenzív terápiás és sürgősségi osztályokon alkalmazott korai figyelmeztető rendszerek - mint például a szepszis kialakulását előrejelző prediktív modellek - folyamatosan monitorozzák a páciens vitális paramétereit (testhőmérséklet, pulzusszám, vérnyomás-ingadozás) és laboratóriumi értékeit. A különböző változók közötti nemlineáris korrelációk felismerésével ezek az algoritmusok gyakran órákkal a látványos klinikai állapotromlás előtt képesek jelezni a szeptikus sokk veszélyét, értékes időablakot biztosítva a célzott antibiotikus és intenzív terápia megkezdéséhez.
+
+\subsection{Diabéteszes retinopátia szűrése és a megelőzés}
+
+A szemészeti prevencióban a diabéteszes retinopátia automatizált szűrése az egyik első olyan MI-alkalmazás volt, amely hatósági (FDA) jóváhagyást kapott az önálló klinikai előszűrésre. A szemfenéki (fundus) kamerák által készített felvételeken a neurális hálózatok nagy megbízhatósággal detektálják a mikroaneurizmákat, a retinális bevérzéseket és az exsudatumokat. Mivel a cukorbetegség szövődményeként fellépő látásvesztés korai lézeres vagy gyógyszeres beavatkozással nagyrészt megelőzhető, az automatizált előszűrés lehetővé teszi a veszélyeztetett populáció széles körű vizsgálatát anélkül, hogy a szemész szakorvosokat rutinszerű, negatív leletek tömegével terhelné túl.
+
+\subsection{Kardiovaszkuláris kockázatbecslés}
+
+A szív- és érrendszeri kórképek megelőzésében a többváltozós gépi tanulási modellek túlléptek a hagyományos, néhány paraméteres (pl. Framingham) kockázati táblázatokon. A modern prediktív algoritmusok az életkor, a vérnyomás és a lipidprofil mellett képesek integrálni a nyugalmi EKG-görbék apró hullámformai eltéréseit, az életmódbeli tényezőket és a genetikai hajlamot is. 
+
+A szepszis-előrejelző, retinopátia-szűrő és kardiovaszkuláris modellek közös nevezője a reaktív gyógyításról a proaktív prevencióra való áttérés. A páciens - mint védett humán szubjektum - szempontjából a legnagyobb nyereséget az jelenti, hogy a technológia még a visszafordíthatatlan szöveti vagy szervi károsodások kialakulása előtt riasztja az ellátórendszert, érdemben javítva a túlélést és a hosszú távú életminőséget.
+
+\section{PATOLÓGIAI MI ÉS SZÖVETI DIAGNOSZTIKA}
+
+\subsection{Digitális patológia és a tumorok automatikus detektálása}
+
+A szövettani diagnosztika digitalizációja - a teljes metszeteket nagy felbontásban rögzítő szkennerek (Whole Slide Imaging, WSI) elterjedése - megnyitotta az utat a számítási patológia (computational pathology) előtt. A gigapixeles méretű digitális metszeteken a mélytanulási modellek képesek sejtszintű pontossággal körülhatárolni a daganatos infiltrációt például prosztata-, emlő- vagy vastagbélbiopsziás mintákban, radikálisan csökkentve a mikroszkópos átvizsgáláshoz szükséges időt.
+
+\subsection{Grading és prognózis-előrejelzés}
+
+A puszta tumordetektáláson túl a patológiai neurális hálózatok a daganatok szövettani fokozatának (grading, pl. a prosztatarák Gleason-score-jának) meghatározásában és a várható kórlefolyás becslésében is komoly segítséget nyújtanak. Az algoritmusok olyan szubvizuális morfológiai jellemzőket - a sejtmagnak a stromához való viszonyát, a mitotikus aktivitás térbeli eloszlását vagy az immunsejtes beszűrődés mintázatát - is képesek számszerűsíteni, amelyek a szabad szemmel végzett mikroszkópos vizsgálat során nehezen reprodukálhatók. Ezáltal csökken a különböző patológusok értékelése közötti szubjektív szórás (inter-observer variability), ami közvetlenül hozzájárul a pontosabb onkológiai terápiatervezéshez.
+
+\subsection{A patológus és a gépi látás együttműködése}
+
+A digitális patológiai asszisztencia kiváló példája a kognitív munkamegosztásnak. Egy-egy szövettani metszet részletes átfésülése rendkívül monoton, nagy vizuális koncentrációt igénylő feladat, amely során a figyelmi lankadás könnyen apró áttétek (pl. nyirokcsomó-mikrometasztázisok) elnézéséhez vezethet. Azáltal, hogy a gépi látás előzetesen megjelöli (hőtérképpel kiemeli) a gyanús régiókat, a patológus figyelmi erőforrásait a kritikus területek validálására irányítja, megóvva a szakembert a vizuális és mentális kifáradástól.
+
+\section{GYÓGYSZERFEJLESZTÉS ÉS PRECÍZIÓS MEDICINA}
+
+\subsection{Molekuláris aktivitás és toxicitás előrejelzése}
+
+A klinikai diagnosztika mellett a gyógyszerkutatás (drug discovery) korai fázisában is alapvető eszközzé váltak a gépi tanulási és gráf-neurális hálózati modellek. A hagyományos, rendkívül költséges és időigényes kísérleti szűrések (high-throughput screening) előtt az algoritmusok \emph{in silico} képesek előre jelezni a jelöltmolekulák célfehérjékhez való kötődési affinitását, farmakokinetikai profilját és várható szervi toxicitását. A kémiai struktúrák és a korábbi bioassay-adatbázisok összefüggéseinek feltárásával a kutatók már a preklinikai fázis elején kizárhatják a kedvezőtlen mellékhatás-profillal rendelkező vegyületeket.
+
+\subsection{Személyre szabott terápia és farmakogenomika}
+
+A precíziós medicinában a prediktív algoritmusok a beteg egyéni genomikai, transzkriptomikai és klinikai adatainak integrálásával segítik a legmegfelelőbb terápiás protokoll kiválasztását. A farmakogenomikai modellek megbecsülik, hogy egy adott páciens szervezete milyen sebességgel bontja le az adott hatóanyagot, illetve mekkora valószínűséggel reagál a célzott biológiai terápiára. Ezzel elkerülhetők a hatástalan, ám súlyos mellékhatásokkal járó kezelési kísérletek, így a döntéstámogató rendszer közvetlenül a beteg testi-lelki integritását védi, miközben a kezelőorvos döntési bizonytalanságát is mérsékli.
+
+\section{A HUMÁN TÉNYEZŐ KORLÁTAI AZ MI-ALAPÚ DIAGNOSZTIKÁBAN}
+
+\subsection{Fáradtság, kognitív terhelés és a „csendes hibázás” jelensége}
+
+Bár az előző alfejezetekben bemutatott orvosi MI-rendszerek technológiailag rendkívül fejlettek, a végső döntést minden esetben a humán szakorvos hozza meg. Ez a felállás azonban felvet egy kritikus rendszerszintű kérdést: mi történik akkor, ha maga az ellenőrző szerepet betöltő emberi láncszem válik kimerültté? A klinikai humán tényezők (human factors) vizsgálatai rávilágítottak arra, hogy a hosszú műszakok végén dolgozó, kognitívan túlterhelt radiológusok és patológusok diagnosztikai találati pontossága szignifikánsan visszaesik, miközben az egy-egy esetre fordított leletezési idő nem növekszik. Ez a jelenség a „csendes hibázás” (silent failure): a szakember látszólag a megszokott munkatempóban halad, ám a munkamemória telítődése és a figyelmi fókusz beszűkülése miatt egyre több finom patológiás eltérést hagy figyelmen kívül \cite{wang2026}.
+
+A csendes hibázás azért különösen veszélyes, mert a kimerült döntéshozó metakognitív önmonitorozó képessége is sérül, így gyakran nincs is tudatában saját teljesítményromlásának \cite{tanveer2026}. Az egyszerű önbevallás („fáradtnak érzem-e magam?”) sem a műtőben, sem a leletezőhelyiségben, sem a harctéri vezetési ponton nem nyújt kellő biztonságot. Ebből fakad az az alapvető mérnöki igény, hogy a döntéstámogató rendszereket ki kell egészíteni egy olyan objektív, non-invazív biometrikus csatornával, amely folyamatosan méri a humán operátor valós idejű kognitív állapotát, és még a kritikus hibák bekövetkezése előtt közbeavatkozik.
+
+\subsection{A humán szakértő és a gépi rendszer közötti bizalom kérdése}
+
+Az ember és a mesterséges intelligencia együttműködésének hatékonyságát alapvetően meghatározza a felhasználói bizalom szintje. Ez a bizalom ideális esetben nem bináris (feltétlen elfogadás vagy teljes elutasítás), hanem pontosan kalibrált: a szakember pontosan annyira támaszkodik az algoritmus javaslataira, amennyire az adott helyzetben a modell megbízhatósága azt indokolja. A rosszul kalibrált bizalom két ellentétes irányban is súlyos hibákhoz vezethet. Az egyik véglet az automatizációs torzítás (automation bias) és a kognitív lustaság \cite{tanveer2026}, amikor a fáradt felhasználó kritikátlanul elfogadja a gép téves javaslatát; a másik pedig az algoritmus-averzió, amikor a szakember a hasznos gépi jelzéseket is figyelmen kívül hagyja.
+
+A biztonságkritikus területeken - például a légiforgalmi irányításban és a katonai repülésben - végzett adaptív automatizálási kutatások egyértelműen igazolták, hogy a gépi beavatkozás csak akkor csökkenti érdemben a mentális terhelést, ha a kontrollátadás folyamata átlátható, az operátor pillanatnyi állapotához igazodik, és bármikor gyorsan felülbírálható. Ha egy rendszer átláthatatlan („fekete doboz”) módon veszi át vagy módosítja a feladatokat, az lerombolja a helyzetértékelő képességet (situational awareness), beszűkíti a figyelmet, és hosszabb távon a szakmai készségek leépüléséhez vezet.
+
+\subsection{Átvezetés: miért van szükség a humán állapot valós idejű monitorozására?}
+
+Az eddigi áttekintésből világosan kirajzolódik, hogy a modern döntéstámogató MI-rendszerek valós hatékonyságát nem önmagában az algoritmusok számítási kapacitása, hanem az ember-gép páros (human-AI symbiosis) összehangoltsága határozza meg \cite{wang2026}. Egy mégoly pontos diagnosztikai vagy harcászati szoftver is kudarcot vallhat, ha a végpontján ülő emberi döntéshozó kognitív túlterhelés, alvásmegvonás vagy akut stressz miatt képtelen a gépi kimenetet megfelelően értelmezni és felülvizsgálni.
+
+Ahhoz tehát, hogy a technológia valóban a humán szubjektum védelmét szolgálja, a döntéstámogató architektúrának „érzékelnie” kell a vele együttműködő ember mentális állapotát. A következő fejezetben bemutatásra kerülő adaptív neurokognitív architektúra - a videó-alapú szemkövetés és a pupillometria eszköztárára építve - pontosan ezt a hiányzó visszacsatolási hurkot valósítja meg.
+
+% ============================================================
+% 2. FEJEZET
+% ============================================================
+\mychapter{AZ ADAPTÍV NEUROKOGNITÍV ÉS OKULOMETRIÁS ARCHITEKTÚRA}
+
+\section{A PUPILLOMETRIA MINT NEUROKOGNITÍV BIOMARKER}
+
+\subsection{Anatómiai és neurofiziológiai háttér}
+
+A pupilla pillanatnyi átmérőjét az írisz állományában elhelyezkedő két, egymással antagonista módon működő simaizom finom egyensúlya határozza meg. A pupillaszűkítő izmot (\emph{musculus sphincter pupillae}) a paraszimpatikus idegrendszer kolinerg rostjai, míg a pupillatágító izmot (\emph{musculus dilatator pupillae}) a szimpatikus idegrendszer adrenerg pályái idegzik be. Ennek a kettős vegetatív szabályozásnak köszönhetően a pupilla mérete folyamatosan, milliszekundumos nagyságrendben tükrözi a szimpatikus és paraszimpatikus tónus pillanatnyi arányát. Mivel a pupillamozgás akaratlagosan nem befolyásolható, kiválóan alkalmas a központi idegrendszeri aktiváció objektív, torzításmentes vizsgálatára \cite{beatty1982}. 
+
+A pupillomotoros központok szoros funkcionális összeköttetésben állnak az agytörzsi hálózatos állománnyal, különösen a \emph{locus coeruleusszal} (LC) és a felső ikertesttel (\emph{colliculus superior}). A locus coeruleus az agy legfőbb noradrenerg magcsoportjaként kulcsszerepet tölt be az éberségi szint (arousal), a szelektív figyelem és a stresszválasz modulálásában. A neurofiziológiai vizsgálatok igazolták, hogy a locus coeruleus neuronjainak tüzelési frekvenciája és a pupilla alapátmérőjének változása között rendkívül szoros, szinte lineáris korreláció áll fenn \cite{eckstein2017}. Ez az közvetlen idegpályabeli kapcsolat adja a magyarázatot arra, miért tekinthető a pupilla egyfajta „optikai ablaknak” a prefrontális és agytörzsi kognitív folyamatokra.
+
+A pupilla válaszreakcióit kiváltó inger szerint három fő csoportba sorolhatjuk. A \emph{pupilláris fényreflex} (PLR) a retina fényérzékeny ganglionsejtjeitől a pretectalis magvakon és az Edinger--Westphal-magon keresztül a \emph{ganglion ciliaréig} futó reflexív működését tükrözi; dinamikai paraméterei (latencia, összehúzódási sebesség, amplitúdó és visszatágulási idő) az agytörzsi épség érzékeny mutatói. Ezzel szemben a \emph{feladat-kiváltotta pupillaválasz} (Task-Evoked Pupillary Response, TEPR) a locus coeruleus--noradrenerg rendszer aktivitásán keresztül a mentális erőfeszítés mértékét jelzi \cite{beatty1982}. A harmadik kategória az \emph{érzelmi vagy affektív pupillaválasz}, amely a limbikus rendszer (különösen az amygdala és az elülső cinguláris kéreg) vegetatív kisugárzásaként jelenik meg fenyegető vagy érzelmileg telített ingerek hatására.
+
+\subsection{A pupilla mint kognitív biomarker}
+
+A kognitív pszichofiziológia egyik legmegbízhatóbban reprodukálható jelensége, hogy a munkamemória terhelésének vagy a feladat nehézségének növekedésével a pupilla átmérője szisztematikusan kitágul \cite{kahneman1973, beatty1982}. Ez a mikrodilatáció (amely jellemzően 0,1--0,5 milliméteres tartományban mozog a megvilágítási alapérték felett) már néhány másodperces fejszámolási vagy logikai döntési feladat során is pontosan regisztrálható. A kapcsolat érzékenységét mutatja, hogy a tágulat mértéke arányos a munkamemóriában tartott elemek (chunkok) számával, és azonnal platózik vagy visszaesik, amint a feladat meghaladja az egyén kognitív kapacitását, és a személy feladja az erőfeszítést \cite{cowan2010, sweller2011}.
+
+A pillanatnyi munkaterhelés mellett a tartós figyelmi készenlét (vigilancia) és a mentális fáradtság is jellegzetes lenyomatot hagy a pupilladinamikán. Hosszabb, monoton monitorozási feladatok során a pupilla átlagos alapátmérője fokozatosan szűkül, miközben megjelennek az alacsony frekvenciájú, spontán átmérő-ingadozások (pupilláris hippus vagy fáradtsági hullámok), amelyek az éberségi tónus instabilitását jelzik. Ezzel párhuzamosan a pislogási gyakoriság növekedése és a szemhéjzáródás időtartamának megnyúlása (pl. a PERCLOS mutató) a központi idegrendszeri kimerülés korai előfutára. A kritikus döntéshozatali helyzetekben ezen paraméterek együttes követése teszi lehetővé az alvásmegvonásból vagy túlmunkából eredő teljesítményromlás előrejelzését.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        node distance=1cm and 1cm,
+        box/.style={rectangle, draw=blue!60!black, thick, fill=blue!5, text width=3.5cm, minimum height=1cm, align=center, rounded corners=4pt},
+        line/.style={thick, draw=black!60}
+    ]
+        \node[circle, draw=black, thick, fill=black, minimum size=1.5cm] (pupil) at (0,0) {};
+        \node[circle, draw=cyan!50, thick, minimum size=3.5cm] (iris) at (0,0) {};
+        \node[text=white, font=\tiny\bfseries] at (0,0) {PUPILLA};
+        \node[box, left=of pupil, yshift=1.5cm] (light) {Fényviszonyok (Reflex)};
+        \node[box, right=of pupil, yshift=1.5cm] (arousal) {Arousal szint};
+        \node[box, left=of pupil, yshift=-1.5cm] (cog) {Kognitív terhelés};
+        \node[box, right=of pupil, yshift=-1.5cm] (emotion) {Érzelmi állapot};
+        \draw[->, line] (light) -- (iris);
+        \draw[->, line] (arousal) -- (iris);
+        \draw[->, line] (cog) -- (iris);
+        \draw[->, line] (emotion) -- (iris);
+        \node[above=2.5cm of pupil, font=\bfseries\large] {Pupilladinamika};
+    \end{tikzpicture}
+    \caption{A pupilla átmérőjét befolyásoló fő tényezők sematikus ábrázolása. A pupilla nem csupán a megvilágításra reagál, hanem a kognitív és érzelmi állapotok érzékeny indikátora is.}
+    \label{fig:pupil_factors}
+\end{figure}
+
+\subsection{A pupilláris fényreflex és klinikai jelentősége}
+
+A pupilláris fényreflex (PLR) kvantitatív elemzése a sürgősségi neurológia és az intenzív terápia egyik legfontosabb objektív diagnosztikai eszköze. A fényimpulzus hatására bekövetkező szűkülés késleltetése (latenciája), maximális sebessége, relatív amplitúdója és a redilatáció üteme rendkívül érzékenyen jelzi a koponyaűri nyomásfokozódást vagy az agytörzsi kompressziót. Traumás agysérülések (TBI) esetén a két szem pupillareakciójának aszimmetriája (anizokória) vagy a kontrakciós sebesség lassulása gyakran órákkal megelőzi a klinikai állapot drasztikus hanyatlását.
+
+A direkt és a konszenzuális (ellenoldali) fényreflex összevetése lehetővé teszi az afferens (látóidegi) és az efferens (okulomotoros) pályák sérüléseinek pontos elkülönítését. A relatív afferens pupilladefektus (RAPD, vagy Marcus Gunn-pupilla) objektív kimutatása a prechiasmális látóideg-károsodás legérzékenyebb klinikai jele. Míg a hagyományos, zseblámpával végzett orvosi vizsgálat erősen szubjektív és a vizsgáló tapasztalatától függ, addig a modern infravörös videó-pupillometria tizedmilliméteres és ezredmásodperces felbontásban rögzíti a reflexgörbét, kiszűrve azokat a szubklinikai eltéréseket is, amelyek szabad szemmel észrevétlenek maradnának.
+
+\subsection{A pupilladinamika és a kognitív állapot kapcsolata}
+
+A pupilla méretváltozása és az agyi információfeldolgozás közötti viszony nem csupán egyirányú, passzív leképeződés: a pupillaméret aktívan befolyásolja a vizuális észlelés optikai minőségét is. A szűkebb pupilla növeli a mélységélességet és csökkenti a szemlencse szférikus aberrációját, ami a finom térbeli részletek fókuszált elemzését (exploitation) segíti. Ezzel szemben a tágabb pupilla több fotont enged a retinára, növelve a perifériás érzékenységet és a globális vizuális pásztázás (exploration) hatékonyságát. 
+
+A pupilladinamika elemzése így két eltérő időskálán nyújt értékes bemenetet az adaptív architektúra számára. A lassú, tonikus alapvonal-változások a felhasználó általános éberségi szintjét és kumulatív fáradtságát tükrözik, míg a gyors, fázisos átmérő-ingadozások a pillanatnyi döntési nehézségekre és a váratlan ingerekre adott orientációs válaszokra világítanak rá. Ez a kettős időbeli felbontás teszi lehetővé, hogy a döntéstámogató rendszer egyaránt képes legyen reagálni a fokozatos mentális kimerülésre és a hirtelen fellépő harctéri vagy klinikai információ-túlterhelésre.
+
+\section{A SZEMKÖVETÉS TECHNOLÓGIÁJA ÉS ALKALMAZÁSA}
+
+\subsection{A szemkövetés mint neurokognitív módszer}
+
+A szemkövetés (eye-tracking) a tekintet térbeli irányának és a szemgolyó mozgásdinamikájának precíz regisztrálására szolgáló eljárás, amely mára a kísérleti pszichológia, a humán-számítógép interakció (HCI) és a neurodiagnosztika megkerülhetetlen eszközévé vált \cite{eckstein2017}. A technológia nem pusztán azt rögzíti, hogy a megfigyelt személy a vizuális tér mely pontjára néz, hanem a szemmozgások finomkinematikai jellemzőinek - a szakkádoknak, fixációknak, sima követő mozgásoknak és mikroszakkádoknak - a szétválasztásával közvetlen betekintést enged a vizuális figyelem allokációjába és a szenzomotoros integráció épségébe.
+
+A módszer magas diagnosztikus értékét az adja, hogy az okulomotoros rendszer vezérlése rendkívül kiterjedt agyi hálózatot vesz igénybe. A szakkádok akaratlagos tervezéséért és megindításáért a frontális szemmező (Frontal Eye Field, FEF) és a dorzolaterális prefrontális kéreg felelős; a térbeli figyelem átirányítását a hátsó parietális kéreg végzi; a nem kívánt szemmozgások gátlásában a bazális ganglionok (\emph{substantia nigra pars reticulata}) játszanak kulcsszerepet; a mozgások ballisztikus pontosságát a kisagy (cerebellum) kalibrálja; a végső motoros parancsokat pedig a hídi és középagyi agytörzsi magvak generálják. Következésképpen a szemmozgások paramétereinek megváltozása nem pusztán szemészeti, hanem komplex kortikális és szubkortikális funkciózavarokat jelezhet. A nyílt forráskódú, megfizethető szemkövető rendszerek (mint amilyeneket a JEO Research is fejleszt) kulcsszerepet játszhatnak abban, hogy ez a diagnosztikai potenciál széles körben, akár erőforrásszegény környezetben is hozzáférhetővé váljon \cite{orlosky_jeo}.
+
+\subsection{A szemmozgások típusai és kognitív jelentőségük}
+
+Az emberi szemmozgások funkcionális és kinematikai szempontból jól elkülöníthető osztályokba sorolhatók (\ref{tab:eye_movements}. táblázat). A \emph{szakkádok} a tekintet rendkívül gyors (akár 500--700 $^\circ$/s csúcssebességű), ballisztikus ugrásai, amelyek a foveát - a legélesebb látás helyét - az egyik vizuális célpontról a másikra irányítják. A szakkádok megindítási ideje (latenciája), sebesség-amplitúdó profilja (main sequence) és célzási pontossága érzékeny indikátora a központi idegrendszeri feldolgozási sebességnek. A latencia megnyúlása a kognitív döntéshozatal lelassulására, míg a célpont túllövése (hipermetria) vagy alullövése (hipometria) kisagyi, illetve bazális ganglioni érintettségre utal.
+
+A \emph{fixációk} a szakkádok közötti, jellemzően 200--300 milliszekundumos viszonylagos nyugalmi periódusok, amelyek alatt a vizuális információ tényleges kérgi feldolgozása zajlik. A fixációk átlagos hossza az adott képi részlet értelmezési nehézségével korrelál, míg a fixációs stabilitás romlása figyelmi zavarokban (pl. ADHD) és neurodegeneratív kórképekben figyelhető meg. Szkizofrénia spektrumzavarban gyakran tapasztalható a hosszabb, beszűkült fixációkból álló, szegényes vizuális letapogatási útvonal (scanpath). A fixációk alatt sem teljesen mozdulatlan a szem: az ekkor fellépő akaratlan, $1^\circ$ alatti amplitúdójú \emph{mikroszakkádok} frekvenciája és irányultsága a rejtett (covert) figyelmi fókusz és a munkamemória-terhelés finom mutatója.
+
+A \emph{sima követő mozgások} (smooth pursuit) akkor lépnek működésbe, amikor a tekintet egy egyenletesen mozgó célpontot tart a foveán; kivitelezésük a vizuális mozgásészlelő kérgi területek (MT/V5) és a motoros rendszer szoros visszacsatolását igényli, így zavaraik (pl. a követés „darabossá”, szakkádikussá válása) korai pszichiátriai és neurológiai biomarkerek. Végül a \emph{vergencia} a két szem ellentétes irányú összetartó vagy széttartó mozgása különböző távolságú tárgyakra való fókuszáláskor, amely a binokuláris fúzió és a térlátás épségéről ad tájékoztatást; zavara agyrázkódás (mTBI) és extrém kimerültség esetén is gyakori.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{A szemmozgások főbb típusai, kognitív funkciójuk és klinikai relevanciájuk}
+    \label{tab:eye_movements}
+    \begin{tabular}{>{\centering\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}p{4.5cm} >{\centering\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{3.5cm}}
+        \toprule
+        \textbf{Mozgástípus} & \textbf{Kinematikai jellemző} & \textbf{Kognitív funkció} & \textbf{Klinikai relevancia} \\
+        \midrule
+        Szakkád & Gyors, ballisztikus ugrás & Figyelmi orientáció, döntés & TBI, szkizofrénia, Parkinson-kór \\
+        Fixáció & Viszonylagos nyugalmi tekintet & Vizuális információfeldolgozás & ADHD, neurodegeneráció \\
+        Mikroszakkád & Apró, akaratlan korrekció & Mentális erőfeszítés, fókusz & Munkamemória-túlterhelés \\
+        Sima követés & Mozgó célpont folyamatos követése & Szenzomotoros integráció & Szkizofrénia, kisagyi laesio \\
+        Vergencia & Két szem diszkonjugált mozgása & Mélységészlelés, fókuszálás & Agyrázkódás, binokuláris zavar \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{A szemkövetés technológiai megközelítései}
+
+A szemmozgások mérésére szolgáló eljárások négy fő technológiai generációba sorolhatók, amelyek pontosságukban, mintavételi frekvenciájukban és invazivitásukban jelentősen eltérnek egymástól. A legmagasabb térbeli és időbeli felbontást a \emph{szklerális keresőtekercs} (scleral search coil) nyújtja, amelynél egy mágneses térbe helyezett, kontaktlencsébe épített indukciós tekercs méri a szemgolyó elfordulását. Bár ez a módszer a neurofiziológiai kutatások referencia-szabványa, invazivitása és kényelmetlensége miatt mindennapi klinikai vagy harctéri használatra alkalmatlan. Az \emph{elektrookulográfia} (EOG) a szemüreg köré ragasztott bőrelektródákkal regisztrálja a corneoretinális dipólus elmozdulását; előnye, hogy csukott szemmel (pl. alvásvizsgálatoknál) is működik, térbeli pontossága azonban elmarad az optikai módszerekétől. A \emph{fotoelektromos} (limbuskövető) eljárások a szaruhártya és az ínhártya határáról visszaverődő fény intenzitását mérik, ám a vertikális szemmozgásokra és a szemhéj takarására érzékenyek.
+
+A gyakorlati döntéstámogatás szempontjából a \emph{videó-alapú szemkövetés} (Video-Oculography, VOG) jelenti az optimális megoldást, mivel teljesen érintésmentes, és egyetlen kamerarendszerrel képes a tekintetirányt és a pupillaátmérőt egyidejűleg mérni. A korszerű VOG-rendszerek közeli infravörös (NIR, jellemzően 850--940 nm hullámhosszú) megvilágítást alkalmaznak: ez a fénytartomány az emberi szem számára láthatatlan és nem vált ki pupilláris fényreflexet, ugyanakkor éles kontrasztot biztosít a pupilla és az írisz határán, valamint jól detektálható szaruhártya-fényvisszaverődést (corneal reflection, Purkinje-kép) hoz létre. A szoftveres feldolgozási csővezeték (pipeline) a kamera képkockáin elvégzi az arc- és szemrégió detektálását, ellipszisillesztéssel vagy konvolúciós szegmentálással meghatározza a pupilla középpontját és tengelyeit, majd a Purkinje-fénypontokhoz viszonyított elmozdulásból - egyéni geometriai kalibráció után - kiszámítja a 3D tekintetvektort. Az olyan kezdeményezések, mint a JEO Research által kínált nyílt forráskódú DIY szemkövető tutoriálok, éppen azt demonstrálják, hogy a költséges, nagyvállalati rendszerek alternatívájaként a megfizethető infravörös kamerákra épülő, saját építésű eszközök is alkalmasak lehetnek kutatási és diagnosztikai célokra \cite{orlosky_jeo}.
+
+\subsection{A szemkövetés mint a kognitív állapot monitorozásának eszköze}
+
+A tekintetvektor és a pupilladinamika kombinált elemzése többdimenziós képet ad az operátor aktuális mentális állapotáról. A vizuális letapogatási útvonal (scanpath) entrópia-elemzése megmutatja, hogy a döntéshozó szisztematikusan, átfogóan pásztázza-e a kijelzőt vagy a harcteret, avagy stressz hatására kaotikussá, esetleg túlságosan merevvé (alagútlátás-szerűvé) válik-e a figyelme. A fixációk időtartamának megnyúlása egy-egy műszeren vagy radiológiai képrészleten az értelmezési bizonytalanság és a lokális kognitív elakadás megbízható jele.
+
+A módszer kiemelkedő gyakorlati előnye a háttérben zajló, észrevétlen (unobtrusive) adatgyűjtés: a képernyőbe, pilótafülkébe vagy taktikai szemüvegbe integrált optikai szenzorok úgy szolgáltatnak másodpercenként akár több száz mintavételi pontot, hogy közben semmilyen másodlagos feladattal nem terhelik a felhasználót. Ez a nagy időbeli felbontású, multimodális adatfolyam teremti meg a lehetőséget arra, hogy az adaptív architektúra még a tudatos fáradtságérzet kialakulása előtt felismerje a figyelmi lankadást.
+
+\subsection{A szemkövetés és a humán szubjektum védelme}
+
+Az okulometriás monitorozás elterjedése ugyanakkor súlyos adatvédelmi és neuroetikai kérdéseket is felszínre hoz. A tekintet folyamatos követése mélyen behatol az egyén intim szférájába, hiszen nemcsak a tudatos fókuszról, hanem az akaratlan érzelmi rezdülésekről, félelmekről és rejtett preferenciákról is árulkodik. Ráadásul a szemmozgások egyéni kinematikai sajátosságai és a pupillareakciók dinamikája biometrikus ujjlenyomatként azonosíthatják a felhasználót. Egy ilyen technológia kizárólag akkor szolgálhatja a humán szubjektum védelmét, ha az architektúra már tervezési szinten kizárja a panoptikus megfigyelés és a munkahelyi vagy szolgálati számonkérés lehetőségét.
+
+A dolgozatban képviselt mérnöki alapelv szerint az okulometriás adat elsődleges tulajdonosa maga a megfigyelt alany. A rendszernek nem egy távoli felügyeleti központ számára kell nyers megfigyelési adatokat továbbítania, hanem elsősorban magának a felhasználónak kell valós idejű biofeedbacket nyújtania saját kognitív tartalékairól. Amikor a döntéshozó transzparens módon rálát saját fáradtsági és terheltségi indexeire, a technológia nem csorbítja, hanem éppen megerősíti az egyén kognitív szuverenitását és önreflexiós képességét.
+
+\section{ADAPTÍV NEUROKOGNITÍV ARCHITEKTÚRÁK ELMÉLETI ALAPJAI}
+
+\subsection{Kognitív architektúrák és a humán megismerés modellezése}
+
+A kognitív tudományban a kognitív architektúrák olyan egységes számítási keretrendszereket jelentenek, amelyek az emberi elme invariáns szerkezeti és működési elveit modellezik. Céljuk nem egyetlen izolált részfolyamat - például a szakkádgenerálás vagy a szófelismerés - szimulálása, hanem annak leírása, miként működik együtt az észlelés, a figyelem, a munkamemória, a hosszú távú tudásreprezentáció és a motoros végrehajtás a komplex problémamegoldás során \cite{anderson2007}.
+
+A terület egyik leginkább kidolgozott és neurobiológiailag is széles körben validált modellje a John R. Anderson és munkatársai által kifejlesztett ACT-R (\emph{Adaptive Control of Thought--Rational}) architektúra \cite{anderson2007}. Az ACT-R hibrid, moduláris felépítésű (\ref{fig:actr_architecture}. ábra): a szimbolikus szintet a deklaratív memóriamodul (amely a tényeket „chunkok” formájában tárolja) és a központi produkciós rendszer (amely „ha--akkor” típusú procedurális szabályokat hajt végre) alkotja, míg a szubszimbolikus szint matematikai egyenletekkel írja le az emléknyomok aktivációs szintjét és a szabályválasztás valószínűségi dinamikáját. A külvilággal a perceptuális-motoros modulok (köztük a vizuális figyelemért és a szemmozgásokért felelős modul) tartják a kapcsolatot, amelyek szűk keresztmetszetű puffereken keresztül kommunikálnak a központi produkciós rendszerrel. Különösen lényeges a dolgozat szempontjából, hogy az ACT-R szubszimbolikus aktivációs folyamatai és az agyi metabolikus, illetve pupillometriás válaszok között közvetlen megfeleltetés állítható fel: a modellbeli pufferek lekérdezési és szabályillesztési terhelése pontosan előre jelzi a feladat-kiváltotta pupillatágulat (TEPR) időbeli lefutását.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        node distance=1cm,
+        mod/.style={rectangle, draw=blue!60!black, thick, fill=blue!10, text width=3cm, minimum height=1cm, align=center, rounded corners=4pt},
+        central/.style={rectangle, draw=red!60!black, thick, fill=red!10, text width=3cm, minimum height=1.2cm, align=center, rounded corners=4pt, font=\bfseries},
+        arrow/.style={thick, <->, >=stealth, draw=black!70}
+    ]
+        \node[central] (prod) {Produkciós rendszer (Döntés)};
+        \node[mod, left=2cm of prod] (visual) {Vizuális modul};
+        \node[mod, right=2cm of prod] (motor) {Motoros modul};
+        \node[mod, above=1.5cm of prod] (goal) {Cél (Goal) puffer};
+        \node[mod, below=1.5cm of prod] (decl) {Deklaratív memória};
+        \draw[arrow] (visual) -- (prod);
+        \draw[arrow] (prod) -- (motor);
+        \draw[arrow] (goal) -- (prod);
+        \draw[arrow, <->] (decl) -- (prod);
+        \node[above=0.5cm of goal, font=\bfseries] {ACT-R Kognitív Architektúra};
+    \end{tikzpicture}
+    \caption{Az ACT-R kognitív architektúra moduláris felépítése \cite{anderson2007}. A vizuális és motoros modulok mellett a központi produkciós rendszer koordinálja a döntéshozatalt és a memóriaműveleteket.}
+    \label{fig:actr_architecture}
+\end{figure}
+
+Az ACT-R és a hasonló kognitív architektúrák beemelése a rendszertervezésbe két okból is elengedhetetlen. Egyrészt elméleti keretet adnak ahhoz, hogy a nyers okulometriás jeleket (fixációs időket, pupillaátmérőt) konkrét belső kognitív állapotváltozókhoz (pufferterheléshez, célfenntartási erőfeszítéshez) kössük. Másrészt rávilágítanak arra, hogy az emberi információfeldolgozás szigorú szerkezeti szűk keresztmetszetekkel (bottlenecks) rendelkezik, amelyeket egy döntéstámogató rendszernek tiszteletben kell tartania.
+
+\subsection{A humán és a gépi kogníció korlátainak párhuzama}
+
+Érdekes módszertani párhuzam figyelhető meg a biológiai megismerés és a modern mesterséges intelligencia kapacitáskorlátai között. Wang és munkatársai \cite{wang2026}, valamint Twabu \cite{twabu2025} a Sweller-féle Kognitív Terhelés Elméletére (Cognitive Load Theory, CLT) \cite{sweller2011} támaszkodva mutattak rá arra, hogy az emberi munkamemória - amely egyszerre csupán $4 \pm 1$ információegységet (chunkot) képes aktívan manipulálni \cite{cowan2010} - funkcionálisan igen hasonló szűk keresztmetszetet képez, mint a nagy nyelvi és multimodális modellek véges kontextusablaka és figyelmi (self-attention) mechanizmusa (\ref{fig:cognitive_limits}. ábra). Amikor a bemeneti információ komplexitása és a feladathoz nem tartozó (extraneous) zaj meghaladja ezt az aktív munkaterületet, mindkét rendszer teljesítménye nemlineárisan összeomlik: a humán döntéshozó figyelme beszűkül (alagútlátás lép fel), fontos részleteket hagy ki és hibázik; a gépi modell pedig elveszíti a kontextus közepén lévő információkat („lost in the middle” jelenség), hallucinálni kezd, vagy inkoherens következtetéseket von le \cite{wang2026}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        box/.style={rectangle, draw=black, thick, fill=gray!10, text width=4cm, minimum height=1.5cm, align=center, rounded corners=4pt},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[box, fill=blue!10] (human) at (-3, 0) {\textbf{Humán munkamemória}\\ (3--5 chunk)};
+        \node[box, fill=blue!10] (human_limit) at (-3, -3) {Kimerülés / Alagútlátás};
+        \node[box, fill=red!10] (machine) at (3, 0) {\textbf{MI kontextusablak}\\ (Figyelmi hígulás)};
+        \node[box, fill=red!10] (machine_limit) at (3, -3) {Ismétlés / Inkoherens kimenet};
+        \draw[arrow] (human) -- (human_limit);
+        \draw[arrow] (machine) -- (machine_limit);
+        \node[above=0.5cm of human, font=\bfseries] {Emberi kogníció};
+        \node[above=0.5cm of machine, font=\bfseries] {Gépi kogníció};
+        \node[draw, circle, fill=yellow!20, thick] (limit) at (0, -3) {Korlát};
+        \draw[arrow, dashed] (human_limit) -- (limit);
+        \draw[arrow, dashed] (machine_limit) -- (limit);
+    \end{tikzpicture}
+    \caption{A humán és a gépi kogníció korlátainak párhuzama \cite{wang2026}. Mindkét rendszer teljesítménye drasztikusan visszaesik, ha a terhelés meghaladja a rendelkezésre álló feldolgozási kapacitást.}
+    \label{fig:cognitive_limits}
+\end{figure}
+
+A két rendszer között ugyanakkor van egy alapvető aszimmetria. Az ember - egészséges és pihent állapotban - rendelkezik biológiai metakognícióval, vagyis képes érzékelni saját bizonytalanságát, és ennek hatására stratégiát váltani (lassítani, heurisztikákhoz nyúlni vagy segítséget kérni). A jelenlegi MI-architektúrák ezzel szemben nem rendelkeznek valódi belső önmonitorozással; gyakran éppen akkor adnak magabiztosnak tűnő, ám téves kimenetet, amikor a bemeneti adatok túlterhelik vagy eltorzítják a reprezentációs terüket. 
+
+Ebből a felismerésből következik a korlátozott ágensek komplementaritásának (\emph{bounded agent complementarity}) elve \cite{wang2026}: sem az ember, sem a gép nem tekinthető végtelen kapacitású, tévedhetetlen döntéshozónak. A biztonságos ember-gép szimbiózis kulcsa a dinamikus terheléskiegyenlítés, amelyben az adaptív architektúra folyamatosan figyeli a humán fél kognitív telítődését, és úgy adagolja, szűri vagy strukturálja az információt, hogy az emberi munkamemória a produktív, optimális zónán belül maradjon.
+
+\subsection{Az adaptív neurokognitív architektúra fogalma}
+
+Míg a klasszikus kognitív architektúrák elsősorban az átlagos emberi elme működését leíró statikus elméleti modellek, addig az adaptív neurokognitív architektúra fogalma - La Cerra és Bingham \cite{laCerra1998} evolúciós neurobiológiai megközelítéséből, valamint a modern neuroergonómiai rendszerekből kiindulva - a folyamatos környezeti és egyéni alkalmazkodóképességet helyezi a középpontba. Egy ilyen mesterséges támogatórendszer nem rögzített, minden felhasználóra egyformán ráerőltetett szabályokkal dolgozik, hanem három egymásra épülő szinten képes az önhangolásra (\ref{fig:three_level_adaptation}. ábra).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        layer/.style={rectangle, draw=purple!70!black, thick, fill=purple!5, text width=7cm, minimum height=1cm, align=center, rounded corners=4pt},
+        humanlayer/.style={rectangle, draw=red!70!black, thick, fill=red!5, text width=7cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\bfseries},
+        arrow/.style={thick, ->, >=stealth, draw=black!70},
+        feedback/.style={thick, dashed, ->, >=stealth, draw=black!70}
+    ]
+        \node[layer] (sensor) at (0, 0) {\textbf{1.} Szenzoros adaptáció (jelfeldolgozás)};
+        \node[layer] (feature) at (0, -2) {\textbf{2.} Kognitív adaptáció (egyéni profil)};
+        \node[layer] (decision) at (0, -4) {\textbf{3.} Viselkedéses adaptáció (döntéstámogatás)};
+        \node[humanlayer] (human) at (0, -6) {\textbf{4.} Humán visszacsatolás};
+        \draw[arrow] (sensor) -- (feature);
+        \draw[arrow] (feature) -- (decision);
+        \draw[arrow] (decision) -- (human);
+        \draw[feedback] (human.east) -- ++(1.5,0) |- node[right, font=\scriptsize\itshape, pos=0.25] {adaptáció} (sensor.east);
+    \end{tikzpicture}
+    \caption{Az adaptív neurokognitív architektúra háromszintű adaptációs modellje. A humán visszacsatolás nem csupán a lánc végpontja, hanem a rendszer önhangolásának forrása is.}
+    \label{fig:three_level_adaptation}
+\end{figure}
+
+Az első szint a \emph{szenzoros adaptáció}, amelynek során a jelfeldolgozó algoritmus a külső fizikai környezet változásaihoz (például a változó megvilágításhoz, a kamerarázkódáshoz vagy a pupilláris fényreflex kiváltotta alapvonal-eltolódáshoz) igazítja a szűrőparamétereket. A második szint a \emph{kognitív vagy modellszintű adaptáció}: itt a rendszer a konkrét felhasználó egyéni fiziológiai sajátosságaihoz (nyugalmi pupillaátmérő, egyéni pislogási dinamika, stressztűrő képesség) kalibrálja az állapotbecslő hálózat súlyait és struktúráját. A harmadik szint a \emph{viselkedéses vagy interakciós adaptáció}, ahol a rendszer a becsült mentális állapot függvényében módosítja saját felhasználói felületét, az információk sűrűségét vagy az automatizáció fokát. Ez a háromszintű visszacsatolás emeli a rendszert az egyszerű biometrikus adatgyűjtőkből a valódi, zárt hurkú kognitív döntéstámogató architektúrák sorába.
+
+\subsection{A statikus méréstől a folyamatos monitorozásig}
+
+A hagyományos orvosi és honvédelmi alkalmassági vizsgálatok diszkrét, keresztmetszeti mérésekre épülnek: a pácienst vagy a katonát laboratóriumi körülmények között tesztelik, majd az ott kapott eredményből következtetnek a későbbi beválásra. Ennek a megközelítésnek két súlyos módszertani korlátja van. Egyrészt alacsony az ökológiai validitása, hiszen egy steril rendelőben nyújtott teljesítmény keveset árul el arról, miként reagál az egyén idegrendszere éles harctéri stresszben vagy egy tizenkét órás éjszakai ügyelet végén. Másrészt figyelmen kívül hagyja a humán kogníció dinamikus, óráról órára és percről percre fluktuáló természetét \cite{laCerra1998}.
+
+A folyamatos, valós idejű okulometriás monitorozás áthidalja ezt a szakadékot, mivel az állapotbecslést magába a munkavégzési folyamatba ágyazza be. Az in situ adatgyűjtés lehetővé teszi az egyéni kifáradási görbék pontos felrajzolását és az akut kognitív túlterhelési csúcsok azonnali felismerését. Ugyanakkor ez a folytonosság új tervezési felelősséget is ró a mérnökre: a rendszernek úgy kell folyamatos védelmet nyújtania, hogy közben ne keltsen a felhasználóban állandó, nyomasztó megfigyeltségi érzést (ezt a dilemmát a 2.6. és a 4.1. alfejezet elemzi részletesen).
+
+\subsection{A modell és a biológiai valóság megfeleltetése}
+
+Egy neurokognitív döntéstámogató rendszer megbízhatósága azon áll vagy bukik, mennyire hűen képezi le a mögöttes neurobiológiai folyamatokat. Ha egy algoritmus pusztán nyers statisztikai korrelációkat keres a pupillaátmérő és a hibázási ráta között anélkül, hogy szétválasztaná a fotomotoros fényreflexet a locus coeruleus által közvetített kognitív mikrodilatációtól, akkor egy egyszerű képernyőfényerő-változás is téves túlterhelési riasztást válthat ki.
+
+A biológiailag plauzibilis modellezés ezért kétirányú validációt követel meg. Tervezési irányban a jellemzőkinyerő (feature extraction) rétegnek a látórendszer és a vegetatív idegrendszer ismert időállandóira kell épülnie (például a fázisos és tonikus pupillakomponensek frekvenciaalapú szétválasztásával). Ellenőrzési irányban pedig a modell által becsült belső állapotváltozóknak szigorúan korrelálniuk kell az objektív viselkedéses mutatókkal (reakcióidő-növekedés, tévesztési arány) és a független elektrofiziológiai mérésekkel (pl. EEG frontális théta- és parietális alfa-teljesítmény).
+
+\subsection{Az adaptív rendszerek etikai dimenziója}
+
+Az egyéni sajátosságokhoz való finomhangolás - amely a rendszer technikai hatékonyságának záloga - egyben a legkomolyabb etikai sérülékenységi pont is. Minél pontosabb, személyre szabottabb neurokognitív profilt épít fel az architektúra egy orvosról vagy egy katonáról, annál érzékenyebb információhalmaz keletkezik az illető stressztűrő képességéről, figyelmi gyengeségeiről vagy esetleges szubklinikai neurológiai eltéréseiről. 
+
+A „humán szubjektum védelme” ebben az összefüggésben azt jelenti, hogy az adaptív profilozás eredménye soha nem fordítható szembe magával a felhasználóval. A rendszer tervezésekor a *Privacy by Design* és az *Ethics by Design* elveket kell érvényesíteni: a személyre szabott modellparamétereknek lokálisan, a felhasználó kizárólagos ellenőrzése alatt kell maradniuk, és kizárólag az egyén tehermentesítését, nem pedig külső minősítését vagy szelekcióját szolgálhatják.
+
+\section{EVOLUTÍV MODELLEZÉS ÉS A NEAT ALGORITMUS}
+
+\subsection{A neuroevolúció alapjai}
+
+A mesterséges neurális hálózatok hagyományos tanítási paradigmája - a hibavisszaterjesztésen (backpropagation) és gradiensalapú optimalizáláson nyugvó mélytanulás - előre rögzített, mérnöki úton megtervezett hálózati topológiát feltételez, amelyben a tanulás kizárlag az összeköttetések súlyainak hangolására korlátozódik. A biológiai idegrendszerek fejlődése és alkalmazkodása azonban nem csupán a szinaptikus erősségek módosulásán, hanem magának a neurális huzalozásnak, a hálózati struktúrának az evolúciós és egyedfejlődési átrendeződésén alapul \cite{laCerra1998}. A \emph{neuroevolúció} ezt a biológiai elvet ülteti át a számítástudományba: evolúciós algoritmusok (populációalapú szelekció, genetikai keresztezés és mutáció) segítségével nemcsak a hálózat súlyait, hanem a csomópontok számát és a köztük lévő kapcsolatok topológiáját is automatikusan fejleszti \cite{stanley2002}.
+
+Ez a megközelítés különösen előnyös a pszichofiziológiai és okulometriás jelek feldolgozásában. A szemmozgási és pupilladinamikai idősorok erősen zajosak, nemstacionáriusak, és az egyes kognitív állapotokkal való összefüggésük egyénenként eltérő strukturális mintázatokat mutathat. Ráadásul a zárt hurkú döntéstámogatásban gyakran nem áll rendelkezésre minden időpillanatban pontos, címkézett tanítóadat (supervised target), hanem csak késleltetett, aggregált teljesítmény- vagy jólléti visszajelzések (fitness-értékek), amelyekre az evolúciós keresés gradiensmentesen is képes optimalizálni.
+
+\subsection{A NEAT algoritmus}
+
+A topológia- és súlyoptimalizáló neuroevolúciós módszerek (TWEANN -- \emph{Topology and Weight Evolving Artificial Neural Networks}) legmeghatározóbb áttörését a Kenneth O. Stanley és Risto Miikkulainen által kidolgozott NEAT (\emph{NeuroEvolution of Augmenting Topologies}) algoritmus hozta el \cite{stanley2002}. A korábbi neuroevolúciós kísérletek rendre három alapvető akadályba ütköztek: a különböző szerkezetű hálózatok genetikai keresztezése (a „versengő konvenciók” problémája) gyakran működésképtelen utódokat eredményezett; a mutációval bekerülő új strukturális elemek a kezdeti finomhangolatlanság miatt lerontották a hálózat teljesítményét, így a szelekció idő előtt kiejtette őket; a kontrollálatlan topológiai mutációk pedig feleslegesen túlbonyolított, lassú hálózatokhoz vezettek. A NEAT erre a három problémára három elegáns algoritmikus megoldást vezetett be (\ref{fig:neat_evolution}. ábra).
+
+Az első a \emph{történeti jelölések} (historical markings / innovation numbers) alkalmazása. Valahányszor a mutáció során egy új kapcsolat vagy csomópont jön létre a populációban, az egy globálisan növekvő, egyedi innovációs sorszámot kap, amelyet a gén örökít. Keresztezéskor (crossover) az algoritmus az azonos innovációs számú géneket pontosan egymáshoz tudja illeszteni (homológ gének), míg az eltérő (diszjunkt vagy többlet) géneket strukturális sérülés nélkül képes átörökíteni. A második pillér a \emph{fajképzés} (speciation): a populáció egyedeit topológiai és súlybeli hasonlóságuk alapján különálló ökológiai fülkékbe (fajokba) sorolja. Az új, innovatív struktúrák így csak a saját fajukon belül versenyeznek, ami védett időablakot biztosít számukra a súlyok finomhangolására. A harmadik alapelv a \emph{minimalista indulás} (complexification): a NEAT nem véletlenszerűen nagy hálózatokból indul ki, hanem rejtett réteg nélküli, minimális topológiával kezdi az evolúciót, és csak akkor bővíti a struktúrát új neuronokkal és élekkel, ha a komplexitás növelése tényleges fitness-javulást eredményez \cite{stanley2002}.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        neuron/.style={circle, draw=blue!60!black, thick, fill=blue!10, minimum size=0.8cm, inner sep=0pt},
+        link/.style={thick, draw=gray!70},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[font=\bfseries] at (-4, 2.5) {Minimális kezdeti topológia};
+        \node[neuron] (i1) at (-5, 1) {I1};
+        \node[neuron] (i2) at (-5, 0) {I2};
+        \node[neuron] (o1) at (-3, 1) {O1};
+        \node[neuron] (o2) at (-3, 0) {O2};
+        \draw[link] (i1) -- (o1);
+        \draw[link] (i2) -- (o2);
+        \node[font=\bfseries] at (4, 2.5) {Bővített topológia (innováció)};
+        \node[neuron] (i1_r) at (3, 1) {I1};
+        \node[neuron] (i2_r) at (3, 0) {I2};
+        \node[neuron, fill=green!20] (h1) at (5, 0.5) {H1};
+        \node[neuron] (o1_r) at (7, 1) {O1};
+        \node[neuron] (o2_r) at (7, 0) {O2};
+        \draw[link] (i1_r) -- (h1);
+        \draw[link] (i2_r) -- (h1);
+        \draw[link] (h1) -- (o1_r);
+        \draw[link] (h1) -- (o2_r);
+        \draw[link] (i1_r) -- (o1_r);
+        \draw[arrow] (-1.5, 0.5) -- (1.5, 0.5) node[midway, above] {Strukturális mutáció};
+    \end{tikzpicture}
+    \caption{A NEAT algoritmus alapelve \cite{stanley2002}: a hálózati topológia fokozatos komplexifikációja új csomópontok és kapcsolatok védett evolúciós hozzáadásával.}
+    \label{fig:neat_evolution}
+\end{figure}
+
+A javasolt neurokognitív architektúrában a NEAT szerepe kulcsfontosságú: lehetővé teszi, hogy az állapotbecslő modell ne csak paramétereiben, hanem belső huzalozásában is a felhasználó egyedi okulometriás profiljához idomuljon. Előfordulhat például, hogy az egyik operátornál a kognitív túlterhelést elsősorban a mikroszakkádok és a pupilla-fluktuáció nemlineáris interakciója jelzi előre, míg egy másik személynél a fixációs időtartam és a pislogási frekvencia kapcsolata a domináns. A NEAT képes arra, hogy egyénre szabottan építse ki a releváns bemeneti jellemzőket összekötő rejtett részgráfokat.
+
+\subsection{A Baldwin-hatás és a tanulás evolúciós szerepe}
+
+Az evolúciós modellezés és az egyéni kalibráció kapcsolatának elméleti hátterét a \emph{Baldwin-hatás} világítja meg. Az 1896-ban James Mark Baldwin által megfogalmazott evolúcióbiológiai elmélet szerint az egyedek életük során szerzett ontogenetikus tanulási és alkalmazkodási képessége (plaszticitása) közvetve irányítja a filogenetikus evolúciót: azok az egyedek, amelyek gyorsabban képesek tanulással alkalmazkodni a változó környezethez, nagyobb eséllyel maradnak fenn, így idővel a tanulási költséget csökkentő örökletes struktúrák szelektálódnak ki.
+
+A hibrid neurokognitív architektúrák nyelvére lefordítva ez a globális struktúra-evolúció (NEAT) és a lokális, munkamenet közbeni súlyfinomhangolás (online kalibráció) szinergiáját jelenti. Az architektúra evolúciós magja olyan alap-topológiákat alakít ki, amelyek nem merev szabályokat kódolnak, hanem rendkívül gyorsan, néhány perces baseline-mérés alapján képesek adaptálódni egy új felhasználó fiziológiai paramétereihez (meta-learning jellegű plaszticitás). Ugyanakkor - összhangban a humán szubjektum védelmével - az egyéni tanulás során létrejött személyes súlymátrixok szigorúan lokálisak maradnak: a globális modell csupán a strukturális alkalmazkodóképességet fejleszti, a konkrét személyes biometrikus mintázatokat nem emeli át központi adatbázisba.
+
+\subsection{Miért illik az evolutív modellezés a pupilladinamikához?}
+
+Az okulometriás és pupillometriás adatok feldolgozásában a NEAT-alapú evolutív megközelítés három döntő előnnyel bír a hatalmas, túlparaméterezett mélyneurális hálózatokkal szemben. Az első a \emph{minta-hatékonyság és a túlillesztés (overfitting) elkerülése}: egy-egy felhasználótól a kalibrációs szakaszban csupán korlátozott mennyiségű adat áll rendelkezésre, amelyen egy több százezer paraméteres mélyhálózat azonnal túlillesztene, míg a NEAT minimalista, alulról építkező topológiája csak annyi szabad paramétert tart fenn, amennyit az adat valóban indokol.
+
+A második - és humánvédelmi szempontból talán legfontosabb - előny a \emph{magyarázhatóság (Explainable AI, XAI) és az auditálhatóság}. Egy néhány tucat csomópontból álló, ritkított (sparse) NEAT-gráf szerkezete a klinikus vagy a rendszerfelügyelő mérnök számára is áttekinthető: pontosan nyomon követhető, hogy a hálózat mely szemmozgási jellemzőket milyen súllyal kapcsolt össze a fáradtsági vagy túlterheltségi riasztás kiváltásához. Ez a strukturális átláthatóság alapfeltétele annak, hogy a döntéstámogató rendszer elkerülje a „fekete doboz” jelleget. A harmadik előny pedig a \emph{valós idejű peremhálózati (edge) futtathatóság}: a kompakt, optimalizált topológiájú hálózatok minimális számítási és energiaigénnyel, dedikált GPU nélkül is ezredmásodperces válaszidővel futtathatók hordozható katonai eszközökön vagy klinikai munkaállomásokon.
+
+\section{AZ ADAPTÍV ARCHITEKTÚRA KONCEPCIONÁLIS MODELLJE}
+
+\subsection{A rendszer koncepcionális felépítése}
+
+A javasolt adaptív neurokognitív architektúra négy, funkcionálisan jól elkülönülő, egymásra épülő rétegből áll (\ref{fig:conceptual_layers}. ábra), amelyek mindegyike specifikus szerepet tölt be a humán döntéshozó tehermentesítésében és védelmében.
+
+Az első szint az \emph{Adatgyűjtési és jelfeldolgozási réteg}. Ez a modul felel a nyers videó-okulográfiai adatfolyam vételéért és előfeldolgozásáért: elvégzi a szemrégió (ROI) valós idejű detektálását, a pupillakontúr szegmentálását, a 3D tekintetvektor meghatározását, valamint a pislogási műtermékek (artefaktumok) kiszűrését és a megvilágítási alapvonal kompenzálását. Mérnöki és humánvédelmi szempontból ez a réteg a rendszer „érzékszerve”: ha a zajszűrés nem kellően robusztus, a rossz minőségű bemenet a magasabb rétegekben téves riasztások láncolatát indíthatja el.
+
+A második szint a \emph{Jellemzőkinyerési és állapotbecslési réteg}. Itt történik a megtisztított idősorok transzformálása magasabb szintű neurokognitív mutatókká. Az evolutív (NEAT) modell és az ACT-R-alapú kognitív szűrők a szakkádok kinematikájából, a fixációs eloszlásból és a pupilladinamikából négy fő kompozit mutatót állítanak elő: a Kognitív Terhelési Indexet, a Figyelmi Pontszámot, a Fáradtsági Indexet és a Neurológiai Épségi Indexet.
+
+A harmadik szint az \emph{Adaptív döntéshozatali és beavatkozási réteg}. Ez a modul értékeli ki a becsült kognitív indexeket az aktuális feladatkörnyezet (pl. harcászati fázis vagy klinikai leletezési folyamat) kontextusában, és meghatározza a szükséges támogató lépést. A beavatkozási spektrum az enyhe vizuális jelzésektől és a „kalibrált lassítástól” a második szakorvosi ellenőrzés bekérésén át az autonóm alrendszereknek történő fokozatos feladatdelegálásig terjed.
+
+A negyedik szint a \emph{Humán visszacsatolási és felülbírálati réteg}. Ez a réteg zárja a neuroadaptív hurkot, és garantálja az érdemi emberi kontrollt (meaningful human control). A felhasználó itt kap transzparens visszajelzést saját becsült állapotáról és a rendszer javaslatairól, miközben mindvégig megőrzi a vétójogot és a manuális felülbírálat lehetőségét; a felhasználói reakciók pedig visszacsatolódnak a modell finomhangolásába.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        layer/.style={rectangle, draw=purple!70!black, thick, fill=purple!5, text width=7cm, minimum height=1cm, align=center, rounded corners=4pt},
+        humanlayer/.style={rectangle, draw=red!70!black, thick, fill=red!5, text width=7cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\bfseries},
+        arrow/.style={thick, ->, >=stealth, draw=black!70},
+        feedback/.style={thick, dashed, ->, >=stealth, draw=black!70}
+    ]
+        \node[layer] (sensor) at (0, 0) {\textbf{1.} Adatgyűjtés és jelfeldolgozás};
+        \node[layer] (feature) at (0, -2) {\textbf{2.} Jellemzőkinyerés és állapotbecslés};
+        \node[layer] (decision) at (0, -4) {\textbf{3.} Adaptív döntéshozatal};
+        \node[humanlayer] (human) at (0, -6) {\textbf{4.} Humán visszacsatolás és felülbírálat};
+        \draw[arrow] (sensor) -- (feature);
+        \draw[arrow] (feature) -- (decision);
+        \draw[arrow] (decision) -- (human);
+        \draw[feedback] (human.east) -- ++(1.5,0) |- node[right, font=\scriptsize\itshape, pos=0.25] {adaptáció} (sensor.east);
+    \end{tikzpicture}
+    \caption{Az adaptív neurokognitív architektúra négyrétegű koncepcionális modellje.}
+    \label{fig:conceptual_layers}
+\end{figure}
+
+\subsection{Adaptív működési logika}
+
+Az architektúra működési logikájának legfőbb sajátossága a merev, populációátlagra épülő küszöbértékek elvetése. Minden munkamenet (műszak vagy bevetés) elején egy rövid \emph{baseline kalibráció} zajlik le, amelynek során a rendszer rögzíti az egyén aktuális nyugalmi pupillaátmérőjét, spontán pislogási frekvenciáját, alapvető szakkád-sebességét és fényreflex-dinamikáját. A munkamenet során mért valamennyi eltérés ehhez az egyéni, aznapi referenciaállapothoz (z-score normalizálással) viszonyítódik, míg az online tanulási modul folyamatosan követi a napszaki (cirkadián) ritmusból eredő lassú alapvonal-eltolódásokat.
+
+Az adaptív beavatkozások vezérlése három szigorú tervezési szabályon nyugszik:
+\begin{enumerate}
+    \item \textbf{Személyre szabtottság:} A riasztási és adaptációs küszöbök az egyéni terhelhetőségi profilhoz igazodnak, elkerülve az egyénre nem illő átlagnormák kényszerítését.
+    \item \textbf{Fokozatosság (Gradualitás):} A rendszer nem hajt végre hirtelen, ugrásszerű felület- vagy kontrollváltásokat, mert a váratlanul megváltozó munkakörnyezet önmagában is megzavarja a munkamemóriát és növeli a kognitív terhelést \cite{sweller2011}.
+    \item \textbf{Visszafordíthatóság (Reverzibilitás):} Minden automatizált tehermentesítési lépés vagy delegálás azonnal, egyetlen mozdulattal visszavonható a humán operátor által.
+\end{enumerate}
+
+\subsection{Kognitív indexek}
+
+Az állapotbecslő réteg által előállított négy kompozit kognitív index számszerűsített, 0 és 1 (vagy 0 és 100\%) közé skálázott mutatóként reprezentálja a felhasználó mentális és neurofiziológiai státuszát (\ref{tab:indices}. táblázat). A \emph{Kognitív Terhelési Index} a megvilágítás-kompenzált fázisos pupillatágulatból (TEPR), a mikroszakkádok frekvenciájából és a fixációs idők megnyúlásából épül fel. A \emph{Figyelmi Pontszám} a vizuális letapogatási útvonal (scanpath) entrópiáját, a célterületeken kívüli fixációk arányát és a szakkádikus sebesség-amplitúdó arányt integrálja. A \emph{Fáradtsági Index} a tonikus pupillaátmérő csökkenő trendjét, a lassú pupilláris hippus-oszcillációk megjelenését és a szemhéjzáródási mutatókat (PERCLOS, pislogási időtartam) súlyozza. Végül a \emph{Neurológiai Index} a pupilláris fényreflex (PLR) latenciáját, kontrakciós sebességét, a binokuláris szimmetriát és a szakkádikus célzási pontosságot figyeli.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{A rendszer által számított kognitív indexek és humánvédelmi szerepük}
+    \label{tab:indices}
+    \begin{tabular}{>{\centering\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{4.2cm} >{\centering\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{3.8cm}}
+        \toprule
+        \textbf{Kompozit Index} & \textbf{Elsődleges okulometriás bemenetek} & \textbf{Becsült állapot} & \textbf{Humánvédelmi funkció} \\
+        \midrule
+        Kognitív terhelés & Fázisos pupillatágulat, mikroszakkádok & Munkamemória-terhelés & Túlterhelés és alagútlátás megelőzése \\
+        Figyelmi pontszám & Scanpath-entrópia, fixációs stabilitás & Fókusz és koncentráció & Figyelmi kihagyások (lapses) jelzése \\
+        Fáradtsági index & PERCLOS, pislogási ráta, hippus & Éberségi szint (vigilancia) & Mentális kimerülés korai detektálása \\
+        Neurológiai index & PLR-latencia, anizokória, szakkádpontosság & Agytörzsi/kérgi integritás & Traumás sérülés (TBI) azonnali szűrése \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Fontos hangsúlyozni, hogy a döntéshozatali réteg ezeket az indexeket nem izoláltan, hanem időbeli dinamikájukban és egymással való kölcsönhatásukban értékeli. Egy átmenetileg magas Kognitív Terhelési Index magas Figyelmi Pontszámmal és alacsony Fáradtsági Indexszel párosulva egészséges, fókuszált problémamegoldást (flow-állapotot) jelez, amikor a rendszernek tilos közbeavatkoznia. Beavatkozásra akkor van szükség, ha a magas terhelés növekvő Fáradtsági Indexszel és széteső Figyelmi Pontszámmal társul, ami a kognitív összeomlás közvetlen előjele.
+
+\subsection{A személyre szabott kalibráció elve}
+
+A személyre szabott baseline kalibráció nem pusztán jeltechnikai normalizálás, hanem az architektúra egyik legfontosabb humánvédelmi garanciája (\ref{fig:calibration}. ábra). Az autonóm idegrendszeri tónus és a pupilladinamika jelentős interindividuális szórást mutat: életkortól, edzettségtől, szakmai rutintól és farmakológiai tényezőktől (pl. koffeinfogyasztástól) függően két ember nyugalmi pupillamérete és reaktivitása nagymértékben eltérhet. Egy merev, populációs átlagra kalibrált rendszer az atipikus alapértékekkel rendelkező felhasználóknál folyamatos téves pozitív riasztásokat (alarm fatigue) vagy veszélyes téves negatív mulasztásokat produkálna.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        axis/.style={->, >=stealth, thick, draw=black!70},
+        curve/.style={thick, draw=blue!70!black}
+    ]
+        \draw[axis] (0,0) -- (6,0) node[right] {Idő};
+        \draw[axis] (0,0) -- (0,3.5) node[above] {Pupillaméret};
+        \draw[dashed, draw=gray, thick] (0, 1.5) -- (5.5, 1.5) node[right, font=\scriptsize] {Populációs átlag};
+        \draw[curve] (0, 0.5) -- (6, 0.8);
+        \node[right, font=\scriptsize, text=blue!70!black] at (6, 0.8) {Egyéni baseline};
+        \draw[curve] (0, 0.5) -- (2, 1) -- (3, 2.5) -- (4, 2.5) -- (5, 1.5);
+        \node[above, font=\scriptsize, text=blue!70!black] at (3, 2.5) {Kognitív terhelés};
+    \end{tikzpicture}
+    \caption{A személyre szabott kalibráció elve: a rendszer a felhasználó saját nyugalmi alapvonalához (baseline) viszonyítja a fázisos terhelési válaszokat, nem pedig egy merev populációs normához.}
+    \label{fig:calibration}
+\end{figure}
+
+Azáltal, hogy az architektúra minden esetben az egyén önmagához mért relatív állapotváltozását vizsgálja, tiszteletben tartja a humán szubjektum biológiai és kognitív egyediségét. Egy nagy tapasztalatú sebész vagy veterán harcászati operátor kognitív terhelési görbéje másként fut le, mint egy pályakezdőé; az egyéni kalibráció biztosítja, hogy a támogatórendszer mindkettejük esetében pontosan akkor és olyan mértékben lépjen működésbe, amikor arra az adott személynek ténylegesen szüksége van.
+
+\section{AZ ADAPTÍV RENDSZER ÉS A HUMÁN KOGNÍCIÓ KÖLCSÖNHATÁSA}
+
+\subsection{A megfigyelő hatás}
+
+A kísérleti pszichológia és a munkaszociológia régóta ismeri a megfigyelő hatást (Hawthorne-effektus): pusztán az a tudat, hogy a személy tevékenységét rögzítik és értékelik, megváltoztatja a viselkedést és a fiziológiai alapállapotot. Biometrikus és neurokognitív monitorozó rendszerek esetében ez a jelenség különösen kritikus visszacsatolási hurkot hozhat létre (\ref{fig:observer_effect}. ábra). Ha a felhasználó úgy éli meg, hogy a szemkövető rendszer egyfajta digitális felügyelőként folyamatosan vizsgáztatja a figyelmi fegyelmét, az teljesítményszorongást és fokozott szimpatikus idegrendszeri aktivációt vált ki.
+
+Az ergonomiai és munkapszichológiai vizsgálatok rámutattak arra, hogy amikor a dolgozók a fiziológiai telemetriát teljesítményértékelő vagy fegyelmező eszközként észlelik, az önmagában jelentősen megemeli a szubjektív stressz-szintet és az alapvonalbeli kognitív terhelést. Ez a másodlagos szorongás nemcsak a felhasználó jóllétét rontja, hanem magát a mérést is meghamisítja: a szorongás okozta noradrenerg pupillatágulat elfedi a tényleges munkafeladatból származó terhelési jeleket. A probléma különösen élesen jelentkezik hierarchikus szervezetekben - például a honvédelemben -, ahol a katona attól tarthat, hogy a kedvezőtlen kognitív indexek rontják a minősítését vagy az előmeneteli esélyeit.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        box/.style={rectangle, draw=black, thick, fill=gray!10, text width=4cm, minimum height=1cm, align=center, rounded corners=4pt},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[box] (measure) {Biometrikus mérés};
+        \node[box, right=1.5cm of measure] (awareness) {Értékelési tudatosság („Megfigyelnek”)};
+        \node[box, right=1.5cm of awareness] (stress) { másodlagos stressz / szorongás};
+        \node[box, below=1.5cm of stress] (distortion) {Torzított pupillometriás jel};
+        \draw[arrow] (measure) -- (awareness);
+        \draw[arrow] (awareness) -- (stress);
+        \draw[arrow] (stress) -- (distortion);
+        \draw[arrow, dashed] (distortion) -- (measure);
+        \node[below=0.5cm of distortion, text width=6cm, align=center, font=\scriptsize] {A megfigyeltség tudata megváltoztatja magát a mért neurofiziológiai állapotot.};
+    \end{tikzpicture}
+    \caption{A megfigyelő hatás öngerjesztő hurka neurokognitív monitorozás során.}
+    \label{fig:observer_effect}
+\end{figure}
+
+A megfigyelő hatás káros következményeinek kivédése csak architekturális és szervezeti garanciák együttesével lehetséges. A rendszernek teljes transzparenciát kell biztosítania (a felhasználó pontosan látja, milyen indexeket számol a gép), az adathozzáférést pedig úgy kell korlátozni, hogy a nyers biometrikus idősorok soha ne kerülhessenek felettes vagy munkáltatói minősítési adatbázisba. Amennyiben a felhasználó megtapasztalja, hogy a rendszer kizárólag az ő saját munkavégzését támogató „kognitív műszerfalként” működik, a megfigyelési szorongás konstruktív metakognitív tudatossággá alakul át: a szakember megtanulja korán felismerni saját kifáradási mintázatait, és időben él a regeneráció lehetőségével.
+
+\subsection{A kognitív szuverenitás}
+
+A neurotechnológiák és a prediktív algoritmusok fejlődésével a jogfilozófiai és technológiaetikai szakirodalomban előtérbe került a \emph{kognitív szuverenitás} (cognitive sovereignty) fogalma. A kognitív szuverenitás túlmutat a hagyományos információs önrendelkezésen: az egyén azon elidegeníthetetlen jogát jelöli, hogy megőrizze saját figyelmi ritmusát, gondolkodási autonómiáját és mentális integritását a viselkedést elemző és befolyásoló adaptív rendszerekkel szemben.
+
+Az okulometriás alapú döntéstámogató architektúrák esetében ez a kérdés különösen érzékeny. Mivel a pupilladinamika és a mikroszakkádok akaratlan, tudatküszöb alatti folyamatokat tükröznek, előállhat az a helyzet, hogy a gépi algoritmus hamarabb vagy másként diagnosztizálja a felhasználó mentális állapotát, mint ahogyan azt az egyén tudatosan megéli. Ha a rendszer ezt az algoritmikus becslést abszolút igazságként kezeli, és a felhasználó megkérdezése nélkül korlátozza annak döntési jogkörét, azzal megsérti az egyén mentális önrendelkezését (episztemikus paternalizmus).
+
+A kognitív szuverenitás megőrzése érdekében a javasolt architektúra három alapelvet érvényesít:
+\begin{itemize}
+    \item \textbf{Értelmezési transzparencia:} A rendszer nem pusztán egy utasítást ad („Tartson szünetet!”), hanem közérthetően megjeleníti az ahhoz vezető okulometriás indokokat (pl. a fixációs idők megnyúlását vagy a pislogási ráta megugrását).
+    \item \textbf{Szubjektív felülbírálhatóság:} A felhasználó saját megélt állapota nem válhat másodlagossá; a döntéshozónak lehetősége van jelezni, ha a riasztást tévesnek ítéli, amivel korrigálja az adaptív modellt.
+    \item \textbf{Önreflexiós visszacsatolás:} A becsült kognitív indexek elsődleges címzettje mindig maga a humán szubjektum, így a gép az egyén saját metakognícióját erősíti meg, nem pedig kiváltja azt \cite{tanveer2026}.
+\end{itemize}
+
+\subsection{Bizalom és kalibráció}
+
+Ahogyan arra az I. fejezetben már utaltunk, az adaptív rendszerek biztonságos működésének kulcsfeltétele a felhasználói bizalom pontos kalibrációja. A neuroadaptív zárt hurokban ez a bizalom kettős irányú: a felhasználónak nemcsak a szakmai döntéstámogató modulban (pl. a tumordetektáló vagy célpontfelismerő MI-ben), hanem magában a kognitív állapotbecslő okulometriás modulban is megfelelő mértékben kell bíznia.
+
+A légiforgalmi irányításban és pilótafülke-ergonómiában végzett vizsgálatok rávilágítottak arra, hogy a felhasználói bizalom akkor marad stabil, ha a rendszer adaptív állapotváltásai kiszámíthatóak és konzisztensek. Ha az okulometriás modul túl alacsony küszöbnél, indokolatlanul gyakran avatkozik be, a felhasználó zavarónak éli meg a rendszert, és kikapcsolja vagy figyelmen kívül hagyja a jelzéseket (cry-wolf effektus). Ha viszont a rendszer átláthatatlanul, a háttérben veszi át a részfeladatokat, az operátor kiesik a döntési hurokból (out-of-the-loop performance problem), és egy esetleges rendszerhiba esetén képtelen lesz gyorsan visszavenni a manuális irányítást. A bizalom kalibrációja ezért megköveteli, hogy az automatizációs szintek közötti átmenetek mindig egyértelmű vizuális vagy akusztikus jelzéssel és a humán fél tudatos nyugtázásával történjenek.
+
+\subsection{A neuroadaptív zárt hurok pszichológiai következményei}
+
+Amikor a szemkövető szenzor, az állapotbecslő algoritmus és az adaptív felhasználói felület egyetlen valós idejű, zárt szabályozási hurkot (closed-loop neuroadaptive system) alkot, az alapvetően átformálja a munkavégzés pszichológiai dinamikáját. A rendszer ugyanis nem csupán passzívan méri a kognitív terhelést, hanem a feladatkörnyezet azonnali módosításával vissza is hat az emberi idegrendszerre \cite{wang2026}.
+
+Ennek a zárt huroknak a tervezésekor három alapvető pszichológiai tényezőt kell egyensúlyban tartani:
+\begin{enumerate}
+    \item \textbf{Az ágencia és a kontroll érzése (Sense of Agency):} A felhasználónak mindvégig azt kell megtapasztalnia, hogy a rendszer az ő szándékait és munkavégzését támogatja. Ha a gépi adaptáció túl agresszív, a döntéshozó úgy érezheti, hogy csupán másodlagos végrehajtóvá fokozódik le, ami tanult tehetetlenséghez és motivációvesztéshez vezet.
+    \item \textbf{A szakmai kompetencia megőrzése:} Amint arra Tanveer \cite{tanveer2026} is rámutat, a mesterséges intelligenciára való túlzott támaszkodás kognitív lustaságot (cognitive laziness) és a kritikai gondolkodás, valamint a munkamemória-kapacitás fokozatos sorvadását idézheti elő. Az adaptív architektúrának ezért nem a kognitív terhelés nullára csökkentése, hanem az optimális, éberséget és szakmai készségeket fenntartó terhelési sáv (eustressz) biztosítása a feladata.
+    \item \textbf{A morális és szakmai felelősségtudat:} Sem a klinikai gyógyításban, sem a katonai műveletekben nem mosódhat el a felelősség határa. A zárt hurok interakciós kialakításának folyamatosan tudatosítania kell az operátorban, hogy a gépi asszisztencia ellenére a végső döntési autoritás és felelősség az övé.
+\end{enumerate}
+
+% ============================================================
+% 3. FEJEZET
+% ============================================================
+\mychapter{A MEGVALÓSÍTOTT RENDSZER SPECIFIKÁCIÓJA}
+
+\section{A rendszer intelligens magja}
+
+A Neural Eye Tracker lényegi része nem a grafikus felület, hanem az a számítási lánc, amely a képből mérési változókat, a mérési változókból jellemzővektort, a jellemzővektorból pedig kalibrált tekintetirányt állít elő. Ez a lánc három egymásra épülő döntési szintet tartalmaz: (1) a pupilla geometriai detektálását, (2) a mérési jellemzők normalizálását és időbeli kiegészítését, valamint (3) a személyre szabott regressziós modell tanítását és használatát. A rendszer mesterségesintelligencia-jellege elsősorban a harmadik szinten jelenik meg: a program nem előre rögzített képlettel rendeli a pupillapozícióhoz a tekintetszöget, hanem kalibrációs példákból tanulja meg a leképezést.
+
+Fontos elválasztani a determinisztikus képfeldolgozást és a tanuló modellt. A kontrasztjavítás, a kontúrkeresés, az ellipszisillesztés és a geometriai szűrés mérnöki, szabályalapú lépések. Ezek állítják elő a megbízható mérési alapot. Az \texttt{MLPRegressor} ezzel szemben a 13 dimenziós bemeneti térből tanulja meg az azimut és az eleváció nemlineáris függvényét. A tanítás során módosuló súlyok és biasok, a validációs veszteség és a modell predikciós hibája különbözteti meg ezt az egyszerű koordinátatranszformációtól.
+
+{\large
+\begin{equation}
+    \hat{\mathbf{y}} =
+    f_{\boldsymbol{\theta}}\!\left(
+    \operatorname{StandardScaler}(\boldsymbol{\phi}(\mathbf{I}_t))
+    \right),
+    \qquad
+    \hat{\mathbf{y}} =
+    \begin{bmatrix}
+    \widehat{\mathrm{azimut}} \\
+    \widehat{\mathrm{eleváció}}
+    \end{bmatrix}
+\end{equation}
+}%
+
+Itt $\mathbf{I}_t$ a $t$ időpillanat képe, $\boldsymbol{\phi}$ a detektor által előállított jellemzőkinyerő függvény, $f_{\boldsymbol{\theta}}$ az aktuális neurális modell, $\boldsymbol{\theta}$ pedig a tanulás során meghatározott paraméterkészlet. A becslés csak akkor tekinthető érvényes modellkimenetnek, ha a modell tanítása sikeresen lezárult és a bemeneti jellemzők végesek.
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \caption{A megvalósított rendszer fő funkcionális és nem funkcionális követelményei}
+    \label{tab:system_requirements}
+    \begin{tabular}{@{} l p{5.3cm} p{5.3cm} @{}}
+        \toprule
+        \textbf{Azonosító} & \textbf{Követelmény} & \textbf{Megvalósítási válasz} \\
+        \midrule
+        \textbf{FR--01} & Képkocka feldolgozása & OpenCV bemenet, konfigurált feldolgozási méret, képkockánkénti állapotfrissítés \\
+        \textbf{FR--02} & Pupilla és szemrégió detektálása & Dinamikus ROI, kontraszt- és geometriai szűrés, ellipszisillesztés \\
+        \textbf{FR--03} & Stabil mérési állapot előállítása & Külön QThread, Kálmán-szűrés, exponenciális simítás és konfidencia \\
+        \textbf{FR--04} & Tekintetkalibráció & Paraméterezett célpont-rács és személyre szabott regressziós modell \\
+        \textbf{FR--05} & Kísérleti protokoll és riport & Képkategóriák, Stroop-próba, pupillometriai metrikák, HTML/JSON/CSV export \\
+        \textbf{NFR--01} & Adatvédelem és visszakereshetőség & Helyi adatkönyvtár, validált páciensazonosító, strukturált projektfájl \\
+        \textbf{NFR--02} & Hibatűrés & Sikertelen detektálás és hibás bemenet kezelése státuszjelzéssel \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Szoftverarchitektúra és modulhatárok}
+
+A program rétegezett szerkezete a felelősségek szétválasztására épül. A \texttt{main.py} indítja a Qt alkalmazást és előkészíti az adatkönyvtárakat. A \texttt{config} csomag tartalmazza a futási paramétereket és a fájlútvonalakat, a \texttt{core} csomagban található a mérési, kalibrációs, modell- és riportlogika, míg a \texttt{ui} csomag a felhasználói felületet és a vizualizációkat valósítja meg. Ez a felosztás lehetővé teszi, hogy például a pupilladetektor grafikus felület nélkül, egységtesztben is vizsgálható legyen.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        node distance=0.9cm and 1.1cm,
+        layer/.style={rectangle, draw=blue!70!black, thick, top color=white, bottom color=blue!10, text width=4.3cm, minimum height=1.1cm, align=center, rounded corners=1ex, drop shadow={opacity=0.25, shadow xshift=0.15ex, shadow yshift=-0.15ex}},
+        data/.style={rectangle, draw=green!60!black, thick, top color=white, bottom color=green!10, text width=3.6cm, minimum height=1cm, align=center, rounded corners=1ex, drop shadow={opacity=0.25, shadow xshift=0.15ex, shadow yshift=-0.15ex}},
+        arrow/.style={thick, ->, >=latex, draw=black!60}
+    ]
+        \node[data] (input) {Képkocka\\bemeneti réteg};
+        \node[layer, right=of input] (capture) {\textbf{TrackerThread}\\képkocka- és állapotkezelés};
+        \node[layer, right=of capture] (vision) {\textbf{PupilDetector}\\ROI, szegmentálás, detektálás};
+        \node[layer, below=of vision] (model) {\textbf{NeuralGazeModel}\\kalibráció és becslés};
+        \node[layer, left=of model] (task) {\textbf{StimulusTask}\\próbák és metrikák};
+        \node[layer, left=of task] (ui) {\textbf{PyQt5 UI}\\vezérlés és vizualizáció};
+        \node[data, below=of task] (report) {HTML / JSON / CSV riport};
+        
+        \draw[arrow] (input) -- (capture);
+        \draw[arrow] (capture) -- (vision);
+        \draw[arrow] (vision) -- (model);
+        \draw[arrow] (model) -- (task);
+        \draw[arrow] (task) -- (report);
+        \draw[arrow] (ui) -- (capture);
+        \draw[arrow] (task) -- (ui);
+        \draw[arrow, dashed] (report) -- (ui);
+    \end{tikzpicture}
+    \caption{A Neural Eye Tracker megvalósított szoftverarchitektúrája és az adatáramlás fő irányai.}
+    \label{fig:implemented_architecture}
+\end{figure}
+
+A modulhatárok egyben ellenőrzési pontok is. A detektor egységes szótárat ad vissza a középpontra, az ellipszisre, a konfidenciára és a \texttt{raw\_data} jellemzőkre. A követőszál ezt az állapotot simítja és továbbítja a felület felé, a kalibráció pedig ugyanebből a nyers állapotból gyűjt mintákat. Így a képernyőn látható jelölés és a mentett mérési adat ugyanahhoz a feldolgozási ciklushoz tartozik.
+
+\section{A képfeldolgozási csővezeték és a detektor matematikája}
+
+Egy képkocka feldolgozása több, egymást ellenőrző lépésből áll. Elsőként az \texttt{EyeSegmenter} meghatározza a szem hozzávetőleges határoló dobozát. Ha ez sikerül, a pupilla keresése csak a dinamikus ROI-n belül történik; ellenkező esetben a rendszer a korábban ismert vagy a konfigurációban megadott régióhoz tér vissza. A szürkeárnyalatos képet CLAHE-kontrasztjavítás, bilaterális és Gauss-szűrés követi. A rendszer adaptív, Otsu- és fix küszöbölést kombinál, majd morfológiai nyitással és zárással tisztítja a maszkot.
+
+A jelöltek kiválasztása nem egyetlen intenzitási küszöbön alapul. A kontúr területe, köralakúsága, tengelyarányai, sötétsége, a pupilla körüli gyűrű kontrasztja és az előző pozíciótól mért távolság együtt alkotják a jelölt pontszámát. Ez a többkritériumos döntés csökkenti annak esélyét, hogy a szemhéj, a haj vagy egy háttérben lévő sötét objektum téves pupillaként jelenjen meg.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\scriptsize\sffamily,
+        step/.style={rectangle, draw=purple!70!black, thick, top color=white, bottom color=purple!10, text width=2.7cm, minimum height=0.9cm, align=center, rounded corners=1ex, drop shadow={opacity=0.25, shadow xshift=0.1ex, shadow yshift=-0.1ex}},
+        arrow/.style={thick, ->, >=latex, draw=black!60}
+    ]
+        \node[step] (a) {Képkocka\\BGR};
+        \node[step, right=0.4cm of a] (b) {Szem-ROI\\szegmentálás};
+        \node[step, right=0.4cm of b] (c) {CLAHE +\\szűrés};
+        \node[step, right=0.4cm of c] (d) {Küszöbölés és\\morf. tisztítás};
+        \node[step, below=0.8cm of d] (e) {Kontúr- és\\ellipszisillesztés};
+        \node[step, left=0.4cm of e] (f) {Kontraszt és\\geometriai score};
+        \node[step, left=0.4cm of f] (g) {Sub-pixel\\finomítás};
+        \node[step, left=0.4cm of g] (h) {Mért állapot\\+ konfidencia};
+        
+        \draw[arrow] (a) -- (b);
+        \draw[arrow] (b) -- (c);
+        \draw[arrow] (c) -- (d);
+        \draw[arrow] (d) -- (e);
+        \draw[arrow] (e) -- (f);
+        \draw[arrow] (f) -- (g);
+        \draw[arrow] (g) -- (h);
+    \end{tikzpicture}
+    \caption{Egy képkocka pupilladetektálási csővezetéke. A konfidencia csak a geometriai és kontrasztfeltételek együttes teljesülésekor növelhető.}
+    \label{fig:pupil_pipeline}
+\end{figure}
+
+A detektor eredménye egyértelműen jelzi a sikertelen mérést is: ilyenkor a \texttt{detected} mező hamis, a konfidencia nulla, a korábbi stabil középpont pedig csak vizualizációs tartalékérték. A hiányzó detektálás nem kerül érvényes pupillamintaként a későbbi statisztikába. A pislogást a követőszál egymást követő, alacsony konfidenciájú képkockák alapján állapítja meg.
+
+Az ellipszisillesztés eredménye a pupilla középpontja $(x,y)$, a fő- és melléktengely $a,b$, valamint a forgásszög $\alpha$. A kontúr geometriai jellemzői közül a köralakúság
+{\large
+\begin{equation}
+    C = \frac{4\pi A}{P^2}
+\end{equation}
+}%
+adja meg, hogy a kontúr mennyire közelít a körhöz, ahol $A$ a kontúr területe, $P$ pedig a kerülete. A pupilla és az írisz közötti kontrasztot a külső gyűrű és a belső maszk átlagos intenzitásának különbségeként számítjuk:
+{\large
+\begin{equation}
+    \Delta I = \overline{I}_{\mathrm{gyűrű}} -
+    \overline{I}_{\mathrm{pupilla}}.
+\end{equation}
+}%
+
+A jelöltek rangsorolása súlyozott pontszámmal történik:
+{\large
+\begin{equation}
+    S = \sum_{i=1}^{6} w_i q_i,
+    \qquad \sum_{i=1}^{6}w_i=1,
+\end{equation}
+}%
+ahol a $q_i$ normalizált minőségi jellemzők: sötétség, köralakúság, tengelyarány, előző pozícióhoz való közelség, kontraszt és méretilleszkedés. A súlyok és elfogadási határok nem a programfolyamatba rejtett számok, hanem a detektor konfigurációjának dokumentált paraméterei. Így a detektor viselkedése mérhető kísérlettel hangolható, és egy módosítás visszavezethető egy konkrét paraméterhez.
+
+\begin{lstlisting}[caption={Paraméterezett pupillajelölt-pontszámítás},label={lst:pupil_score}]
+score = sum(weight * quality for weight, quality in zip(
+    DETECTION_WEIGHTS, candidate_qualities
+))
+if score > DETECTION_MIN_SCORE:
+    best_candidate = candidate
+\end{lstlisting}
+
+\section{A neurális modell felépítése és tanulása}
+
+\subsection{Bemeneti reprezentáció}
+
+A képből közvetlenül nem tanítunk neurális hálózatot. A detektor kimenetét előbb olyan, fizikailag értelmezhető vektorba rendezzük, amelyben a tekintet szempontjából releváns információ elkülönül a kamera felbontásától és az egyéni anatómiai különbségektől. A modell bemenete:
+{\large
+\begin{equation}
+\boldsymbol{\phi} =
+[d_x,d_y,x,y,a_n,b_n,\alpha_n,A_n,r,\delta,c,v_x,v_y]^\mathsf{T}.
+\end{equation}
+}%
+
+Az $x$ és $y$ az abszolút pupillapozíció képközépre normalizált változói. A $d_x$ és $d_y$ az egyéni baseline-hoz viszonyított eltérések:
+{\large
+\begin{equation}
+d_x = \operatorname{clip}\!\left(
+g_x(x-x_0),-1,1\right), \qquad
+d_y = \operatorname{clip}\!\left(
+g_y(y-y_0),-1,1\right).
+\end{equation}
+}%
+Az $x_0,y_0$ értékeket a nyugalmi minták robusztus mediánja adja. A $g_x,g_y$ erősítési tényezők a konfigurációban szereplő érzékenységi paraméterek; nem szabad őket névtelen literálként a képletbe írni. Az $a_n,b_n,\alpha_n,A_n$ az ellipszis méret-, szög- és területjellemzőinek normalizált értékei, $r$ az oldalarány, $\delta$ a pupilla-írisz kontraszt, míg $v_x,v_y$ két egymást követő mintából képzett sebességkomponens.
+
+\subsection{A többrétegű perceptron számítása}
+
+A modell egy regressziós, előrecsatolt többrétegű perceptron. Ha $\mathbf{z}^{(0)}$ a skálázott bemeneti vektor, akkor minden rejtett rétegben:
+{\large
+\begin{equation}
+\mathbf{z}^{(l+1)}
+= \rho\!\left(\mathbf{W}^{(l)}\mathbf{z}^{(l)}
++\mathbf{b}^{(l)}\right),
+\end{equation}
+}%
+ahol $\mathbf{W}^{(l)}$ a súlymátrix, $\mathbf{b}^{(l)}$ a biasvektor, $\rho$ pedig a ReLU aktiváció:
+{\large
+\begin{equation}
+\rho(u)=\max(0,u).
+\end{equation}
+}%
+Az utolsó réteg lineáris kimenete két számot ad. Ezek az azimut- és elevációszög becslései. A rendszer jelenlegi konfigurációja négy rejtett réteget használ, de a rétegszám, a rétegenkénti neuronszám, a tanulási ráta és a maximális iterációszám konfigurációs bemenetként adható át. Ez azért fontos, mert a modell kapacitása így kísérletileg összehasonlítható, nem pedig kódba égetett adottság.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        neuron_in/.style={circle, draw=green!60!black, top color=white, bottom color=green!15, thick, minimum size=0.65cm, drop shadow={opacity=0.15}},
+        neuron_hid/.style={circle, draw=blue!60!black, top color=white, bottom color=blue!15, thick, minimum size=0.65cm, drop shadow={opacity=0.15}},
+        neuron_out/.style={circle, draw=orange!70!black, top color=white, bottom color=orange!20, thick, minimum size=0.7cm, drop shadow={opacity=0.15}},
+        arrow/.style={->, >=latex, draw=black!25}
+    ]
+        % Bemeneti réteg
+        \foreach \y in {0, 0.8, 1.6, 2.4, 3.2} {
+            \node[neuron_in] (i\y) at (0,\y) {};
+        }
+        \node at (0, 3.8) {$\boldsymbol{\phi}$};
+        
+        % Rejtett rétegek
+        \foreach \y in {0.4, 1.2, 2.0, 2.8, 3.6} {
+            \node[neuron_hid] (h1\y) at (2.2,\y) {};
+            \node[neuron_hid] (h2\y) at (4.4,\y) {};
+        }
+        
+        % Kimeneti réteg
+        \node[neuron_out] (az) at (6.6, 2.3) {az};
+        \node[neuron_out] (el) at (6.6, 1.3) {el};
+        
+        % Élek rajzolása
+        \foreach \i in {0, 0.8, 1.6, 2.4, 3.2} {
+            \foreach \h in {0.4, 1.2, 2.0, 2.8, 3.6} {
+                \draw[arrow] (i\i) -- (h1\h);
+            }
+        }
+        \foreach \h in {0.4, 1.2, 2.0, 2.8, 3.6} {
+            \foreach \k in {0.4, 1.2, 2.0, 2.8, 3.6} {
+                \draw[arrow] (h1\h) -- (h2\k);
+            }
+            \draw[arrow] (h2\h) -- (az);
+            \draw[arrow] (h2\h) -- (el);
+        }
+        
+        % Feliratok
+        \node[above, font=\bfseries\small] at (0, 4.3) {Bemenet};
+        \node[above, font=\bfseries\small] at (3.3, 4.3) {Rejtett reprezentáció};
+        \node[above, font=\bfseries\small] at (6.6, 4.3) {Kimenet};
+    \end{tikzpicture}
+    \caption{A tekintetbecslő MLP számítási gráfja. A teljes modellben a köztes rétegek konfigurálható szélességűek.}
+    \label{fig:mlp_gaze_model}
+\end{figure}
+
+\subsection{Tanítási célfüggvény és optimalizálás}
+
+A kalibráció minden célpontjához ismert a kívánt tekintetszög $\mathbf{y}_i=[\mathrm{az}_i,\mathrm{el}_i]^\mathsf{T}$ és a hozzá tartozó jellemzővektor $\boldsymbol{\phi}_i$. A hálózat az átlagos négyzetes hibát minimalizálja:
+{\large
+\begin{equation}
+\mathcal{L}(\boldsymbol{\theta}) =
+\frac{1}{N}\sum_{i=1}^{N}
+\left\|\mathbf{y}_i-
+f_{\boldsymbol{\theta}}(\boldsymbol{\phi}_i)\right\|_2^2.
+\end{equation}
+}%
+
+A tényleges megvalósításban az optimalizálást az Adam algoritmus végzi. A tanítóadatok egy részét a könyvtári modell belső validációra tartja fenn, és a tanítás leáll, ha a validációs teljesítmény nem javul. A \texttt{train\_score} ezért nem általános klinikai pontosság, hanem a betanított mintákon mért regressziós illeszkedési mutató. A valódi teljesítményhez külön, a tanításban nem használt személy- és munkamenet-szintű tesztkészlet szükséges.
+
+\begin{lstlisting}[caption={A tanítási és predikciós lépések fogalmi magja},label={lst:mlp_training}]
+X = scaler.fit_transform(training_features)
+model.fit(X, target_angles)
+
+features = extract_features(raw_data, update_state=False)
+features = scaler.transform(features.reshape(1, -1))
+prediction = model.predict(features)[0]
+azimuth = clip(prediction[0], AZIMUTH_RANGE)
+elevation = clip(prediction[1], ELEVATION_RANGE)
+\end{lstlisting}
+
+\subsection{Időbeli stabilizálás és bizonytalanság}
+
+A neurális kimenet egyetlen képkockára adott becslés. A megjelenítésben ezért az utolsó, konfigurált hosszúságú predikciós ablak súlyozott átlagát használjuk:
+{\large
+\begin{equation}
+\bar{y}_t =
+\frac{\sum_{k=0}^{K-1}(k+1)y_{t-K+1+k}}
+{\sum_{k=0}^{K-1}(k+1)}.
+\end{equation}
+}%
+Az időbeli simítás nem új tanulási lépés és nem növeli a modell tudását; csak a mérési zaj és az egyes képkockák közötti rövid idejű ugrás hatását csökkenti. Sikertelen modellpredikciót a rendszer nem alakít át hitelesnek látszó adattá: az érvényességi állapotot és a konfidenciát külön kell továbbadni.
+
+\section{Valós idejű követés és állapotkezelés}
+
+A képfeldolgozás a PyQt5 eseménykezelő szálától elkülönített \texttt{TrackerThread}-ben fut. Ennek jelentősége, hogy a képkocka olvasása és az OpenCV számításai nem blokkolják a felület újrarajzolását. A szál minden ciklusban átadja az aktuális képet a detektornak, majd a feldolgozott képet és a megjelenítési állapotot Qt-jelen keresztül továbbítja. A feldolgozási méret és az időzítési paraméterek konfigurációból származnak; így a futási profil nem rejtett literáloktól függ.
+
+A detektált középpontot Kálmán-szűrő és exponenciális simítás stabilizálja. A szűrés nem írja felül a nyers mérést, csak a megjelenítéshez és a tekintet becsléséhez biztosít folytonosabb állapotot. A pupillaméret esetén mediánablak és holtsáv is működik, így az egyetlen kiugró képkocka nem okoz látható méretugrást.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        state/.style={rectangle, draw=orange!75!black, thick, top color=white, bottom color=orange!15, text width=3.4cm, minimum height=1cm, align=center, rounded corners=1ex, drop shadow={opacity=0.25, shadow xshift=0.15ex, shadow yshift=-0.15ex}},
+        arrow/.style={thick, ->, >=latex, draw=black!70}
+    ]
+        \node[state] (idle) {Inicializálás\\nincs bemenet};
+        \node[state, right=1.5cm of idle] (active) {Aktív követés\\detektált pupilla};
+        \node[state, below=1.2cm of active] (blink) {Pislogás / alacsony\\konfidencia};
+        \node[state, left=1.5cm of blink] (error) {Hibás jelfolyam\\státuszjelzés};
+        
+        \draw[arrow] (idle) -- node[above, font=\scriptsize] {capture OK} (active);
+        \draw[arrow] (active) -- node[right, font=\scriptsize] {alacsony konfidencia} (blink);
+        \draw[arrow] (blink) -- node[below, font=\scriptsize] {új érvényes minta} (active);
+        \draw[arrow] (idle) -- node[left, font=\scriptsize] {capture hiba} (error);
+        \draw[arrow] (error) |- (idle);
+    \end{tikzpicture}
+    \caption{A követőszál fontosabb futási állapotai és átmenetei.}
+    \label{fig:tracker_states}
+\end{figure}
+
+\section{Kalibráció és tekintetbecslés}
+
+A tekintetbecslés személyfüggő, ezért a rendszer paraméterezett célpont-kalibrációt alkalmaz. A kalibrációs pontok, a pontonkénti mintaszám és a mintavételi időköz a konfigurációban meghatározott protokoll részei. A pont megjelenítésének és zsugorításának időzítése Qt-timerekkel történik. A főszálban nincs blokkoló \texttt{sleep}, így a mérési hurok és a grafikus felület a kalibráció alatt is válaszképes marad.
+
+A \texttt{NeuralGazeModel} a konfigurált jellemzőkészletből dolgozik. Ezek között szerepel a baseline-hoz viszonyított relatív pozíció, az abszolút pozíció, az ellipszis tengelyei és szöge, a terület, a sötétség, a kontraszt, valamint az előző mintához viszonyított sebesség. A baseline mintaszáma és a relatív pozíció erősítése névvel ellátott modellparaméter. Ez megakadályozza, hogy az érzékenységet egy magyarázat nélküli, kódba írt szorzó határozza meg.
+
+\begin{lstlisting}[caption={Relatív jellemzők képzése a személyes baseline alapján},label={lst:relative_features}]
+abs_x = (cx - frame_w / 2.0) / (frame_w / 2.0)
+abs_y = (cy - frame_h / 2.0) / (frame_h / 2.0)
+
+if baseline_x is not None:
+    dx = abs_x - baseline_x
+    dy = abs_y - baseline_y
+else:
+    dx, dy = abs_x, abs_y
+
+features = np.array([
+    np.clip(dx * RELATIVE_POSITION_GAIN, -1.0, 1.0),
+    np.clip(dy * RELATIVE_POSITION_GAIN, -1.0, 1.0),
+    abs_x, abs_y, major_norm, minor_norm,
+    angle_norm, area_norm, aspect,
+    darkness_norm, contrast_norm, velocity_x, velocity_y
+])
+\end{lstlisting}
+
+A modell tanítása csak legalább 30 kalibrációs minta után indulhat, az adatokat \texttt{StandardScaler} skálázza, a kimenet pedig az azimut és eleváció szögét adja meg. Ha a modell még nincs betanítva, a rendszer geometriai fallbacket használ: a kép középpontjához viszonyított pupillapozícióból becsül szöget. Ez biztosítja, hogy a kalibráció előtti előnézet is értelmezhető maradjon, miközben a fallback eredménye nem keveredik össze a betanított modell validált kimenetével.
+
+\section{Kísérleti protokoll, adatmodell és kiértékelés}
+
+A kísérlet központi adategysége a \texttt{Trial}. Egy próba tárolja az inger kategóriáját és azonosítóját, az időbélyegeket, a pupilla baseline-, minimum-, maximum- és átlagértékeit, a szórást, a fixációs és reakcióidőt, a detektálási konfidenciát, valamint a pislogási jelzőt. A \texttt{StimulusTask} a \texttt{stimuli} könyvtár alkönyvtáraiból dinamikusan építi fel a kategóriákat, és opcionálisan Stroop-próbákat is előállít.
+
+Az \texttt{ExperimentResult} munkamenetszinten összesíti a próbákat és a kategóriánkénti arousal-, fixációs és reakcióidő-mutatókat. A VAS önbecslés és a Stroop-interferencia kiegészítő változóként kerül az eredménybe, így a fiziológiai jel és a viselkedéses teljesítmény együtt vizsgálható. Az \texttt{Analyzer} kizárja a hiányzó, nem numerikus és nem véges értékeket, majd kategória, alany, próbaindex vagy teljes minta szerint csoportosít.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        entity/.style={rectangle, draw=green!60!black, thick, top color=white, bottom color=green!10, text width=3.8cm, minimum height=1.1cm, align=center, rounded corners=1ex, drop shadow={opacity=0.25, shadow xshift=0.15ex, shadow yshift=-0.15ex}},
+        relation/.style={thick, ->, >=latex, draw=black!70}
+    ]
+        \node[entity] (project) {Projekt\\név, páciens, munkamenetek};
+        \node[entity, right=1.6cm of project] (session) {ExperimentResult\\idő, baseline, összesítések};
+        \node[entity, right=1.6cm of session] (trial) {Trial\\inger, pupilla, fixáció, reakció};
+        \node[entity, below=1.2cm of session] (report) {Riport\\HTML, JSON, CSV};
+        
+        \draw[relation] (project) -- node[above, font=\scriptsize] {tartalmaz} (session);
+        \draw[relation] (session) -- node[above, font=\scriptsize] {próbák listája} (trial);
+        \draw[relation] (session) -- (report);
+        \draw[relation, dashed] (trial) |- (report);
+    \end{tikzpicture}
+    \caption{A mérési adatok logikai modellje a projekttől a riportig.}
+    \label{fig:data_model}
+\end{figure}
+
+\section{Felhasználói felület és riportálás}
+
+A felület a mérési folyamatot munkafolyamatként kezeli: projekt- és páciensadatok megadása, kalibráció, ingerbemutatás, élő monitorozás, majd elemzés és riport. A projektfájl formátumát a \texttt{neural-eye-project} azonosító és a verziómező teszi felismerhetővé. A páciensadatok validációja kötelező nevet, a projektben előírt azonosító-formátumot és vizsgálati célt ír elő; a belső azonosító korlátozott karakterkészlete visszakereshető fájlneveket biztosít.
+
+A \texttt{ReportGenerator} két elsődleges kimenetet készít. A nyomtatható HTML szakmai összefoglalót, metrikatáblákat, értelmező szöveget és a klinikai korlátozást tartalmazza. A JSON a teljes strukturált mérési eredmény gépi feldolgozásra alkalmas változata, amelyet az Analyze nézet tölt vissza. A CSV kiegészítő, táblázatos exportként használható statisztikai szoftverben. A riport mindig jelzi, hogy automatikus kiértékelésről van szó, és nem helyettesít szakorvosi döntést.
+
+\section{Hibatűrés, adatbiztonság és ellenőrizhetőség}
+
+A hibatűrés három szinten jelenik meg. A bemeneti réteg ellenőrzi a képkockaforrás elérhetőségét. A mérési réteg a sikertelen detektálást és a pislogást érvénytelen mintaként jelöli, nem pedig kitalált adattal helyettesíti. Az alkalmazási réteg a hiányos projektet, a hibás páciensazonosítót és a túl kevés kalibrációs mintát felhasználói üzenettel utasítja el. Ez a viselkedés különösen fontos klinikai környezetben, ahol a csendes fallback félrevezető biztonságérzetet keltene.
+
+A rendszer alapértelmezésben a Windows felhasználói helyi adatkönyvtárába ment. A projektek, riportok és kalibrációs modellek különíthetők el, a projekt- és riportstruktúra pedig lehetővé teszi a mérés utólagos rekonstruálását. A nyers kamerakép nem szükséges a riportok elkészítéséhez; a tárolási stratégia ezért a származtatott mérési adatokra és a felhasználó által kiválasztott projektinformációkra korlátozható. A jogosultságkezelés és a tényleges klinikai üzembe helyezés külön validációs feladat, nem a prototípus automatikus következménye.
+
+\section{Összegzés: a specifikáció és a koncepció kapcsolata}
+
+A megvalósított rendszer a dolgozat elméleti modelljének mérnöki, korlátozott hatókörű változata. A négy koncepcionális réteg közül az adatgyűjtés és jelfeldolgozás a \texttt{PupilDetector} és a \texttt{TrackerThread} modulban, a jellemzőkinyerés és állapotbecslés a \texttt{NeuralGazeModel} és az \texttt{Analyzer} egységben, a humán vezérlés pedig a PyQt5 felület és a visszavonható munkafolyamatok szintjén jelenik meg. A specifikáció ezáltal különválasztja a ténylegesen implementált funkciókat a jövőbeli, kutatási szintű NEAT- és multimodális kiterjesztésektől.
+\mychapter{ALKALMAZÁSOK}
+
+\section{KATONAI ÉS HARCÁSZATI ALKALMAZÁSI LEHETŐSÉGEK}
+
+\subsection{A modern hadviselés kognitív kihívásai}
+
+A 21. századi hadviselés - különösen a hálózatközpontú és multidomén műveletek (Multi-Domain Operations, MDO) - alapjaiban helyezte át a hangsúlyt a tisztán fizikai állóképességről a kognitív teljesítőképességre. A modern hadszíntéren tevékenykedő katonának, híradó-informatikai operátornak vagy alegységparancsnoknak másodpercek alatt kell hatalmas mennyiségű, gyakran ellentmondásos vagy hiányos szenzoradatot feldolgoznia, miközben extrém pszichikai nyomásnak és krónikus alvásmegvonásnak van kitéve. A hadtudományi és neuroergonómiai vizsgálatok egybehangzóan igazolják, hogy 24 órás folyamatos ébrenlét után az emberi prefrontális kéreg végrehajtó funkciói, a reakcióidő és a kockázatmérlegelési képesség olyan mértékben romlik, mintha a személy körülbelül 0,10\%-os véralkoholszinttel rendelkezne.
+
+A hagyományos katonai vezetési rendszerekben a harcértéknek ez a kognitív dimenziója szinte teljesen láthatatlan marad a parancsnoki lánc számára. Míg a lőszerkészlet, az üzemanyagszint vagy a technikai eszközök állapota pontos telemetriával követhető, addig a kezelőszemélyzet mentális kimerültségéről legfeljebb szubjektív jelentések állnak rendelkezésre. Az önbevallás azonban katonai környezetben különösen megbízhatatlan: a csapatszellem, a küldetéstudat és a hierarchikus elvárások miatt a katona hajlamos eltitkolni saját kimerültségét, az akut harctéri stressz (harctéri köd) pedig önmagában is beszűkíti az önreflexiót. Az adaptív okulometriás monitorozás ezt a vakfoltot szünteti meg a kognitív harcérték objektív, valós idejű számszerűsítésével.
+
+\subsection{Harctéri szituációs tudatosság monitorozása}
+
+A harctéri túlélés és a sikeres feladatvégrehajtás alapfeltétele a pontos szituációs tudatosság (Situational Awareness, SA) fenntartása. Egy korszerű vezetési ponton vagy harcjárműben az operátor figyelméért egyszerre verseng a titkosított rádióforgalmazás, a taktikai térképi kijelző (BMS -- Battle Management System), az pilóta nélküli légi járművek (UAV/drónok) élő videóképe és a fegyverrendszerek telemetriája. Amikor a beérkező információk sűrűsége meghaladja a munkamemória feldolgozási küszöbét \cite{cowan2010, wang2026}, fellép a kognitív alagútlátás (attentional tunneling): az operátor egyetlen részproblémára (például a képernyő egyetlen szektorára) tapad le, miközben teljesen figyelmen kívül hagyja a periférián megjelenő új fenyegetéseket vagy riasztásokat.
+
+A kijelzőkbe vagy taktikai szemüvegekbe épített szemkövető és pupillometriás szenzorokkal ez az állapot azonnal detektálható. A scanpath-entrópia hirtelen lecsökkenése (a tekintet „befagyása” egy szűk területre) és a fázisos pupillatágulat tartós maximuma egyértelműen jelzi az információs túlterhelést. A rendszer ekkor képes dinamikusan beavatkozni a C4ISR (Command, Control, Communications, Computers, Intelligence, Surveillance and Reconnaissance) felület megjelenítésébe: elhalványítja a másodlagos rétegeket, vizuálisan kiemeli a nem vizsgált, de kritikus szektorokat, vagy jelzést küld a váltóparancsnoknak a feladatok átcsoportosítására.
+
+\subsection{Éberség és fáradtság monitorozás}
+
+A túlterhelés ellentéte, a tartós ingerszegénységből és monotonitásból fakadó figyelmi lankadás (underload) legalább ekkora veszélyforrást jelent a honvédelmi feladatokban. Hosszú órákon át tartó légtérfigyelés, határvédelmi hőkamerás megfigyelés, éjszakai konvojkísérés vagy elhúzódó drónjárőrözés során a központi idegrendszer éberségi szintje (vigilanciája) törvényszerűen visszaesik. A pupilladinamika - a tonikus alapátmérő szűkülése, a fáradtsági hippus-hullámok felerősödése - és a szemhéjzáródási mutatók (PERCLOS) már percekkel azelőtt jelzik a mikroalvás (microsleep) veszélyét, hogy a kezelő feje előrebicsaklana vagy hibát vétene.
+
+Harckocsik, gyalogsági harcjárművek, helikopterek és távolról irányított légi rendszerek (RPAS/FPV-drónok) személyzeténél egyetlen másodperces figyelmi kihagyás is a technika és az emberélet elvesztésével járhat. A fedélzeti rendszerekbe integrált okulometriás modul az éberségi küszöb átlépésekor többlépcsős riasztást alkalmazhat (akusztikus/haptikus ébresztő jelzéstől a másodpilóta vagy a parancsnok értesítéséig), közvetlenül védve a kezelőszemélyzet életét.
+
+\subsection{Épületharcászat és közelharc}
+
+A zárt terekben vívott harc, az épületharcászat (Close Quarters Battle, CQB) a gyalogsági és különleges műveleti tevékenységek kognitívan legmegterhelőbb formája. A töredékmásodpercek alatt meghozandó lőelem- és célpont-azonosítási döntések (fegyveres ellenség és fegyvertelen civil megkülönböztetése rossz látási viszonyok között) hatalmas terhet rónak a prefrontális gátló funkciókra.
+
+Ilyen extrém szituációkban - különösen taktikai szimulátoros és kiképzési környezetben, illetve sisakba épített AR/HUD (Augmented Reality / Head-Up Display) rendszereknél - a pupillometria és a szakkádkövetés valós időben mutatja a harctéri stresszreakciót. Ha a rendszer a szimpatikus túlingereltség (pánikjellegű hiperarousal) jeleit észleli - a pupilla extrém kitágulását, a fixációs idők drasztikus lerövidülését és a kapkodó, pontatlan szakkádokat -, a sisakkijelzőn vagy csontvezetéses fülhallgatón keresztül rövid, célzott taktikai-légzési (tactical breathing) vagy fedezékbe húzódási javaslatot adhat, megelőzve az elhamarkodott, járulékos veszteséggel járó tűzmegnyitást.
+
+\subsection{Reflexek és szenzomotoros integráció monitorozása}
+
+A harctéri túlélőképesség szorosan összefügg a szenzomotoros integráció épségével. A szakkádok megindítási latenciájának megnyúlása és a célpontra ugrás pontosságának (gain) romlása objektíven jelzi a reakcióidő hanyatlását. Ennél is fontosabb azonban a rendszer szerepe a harctéri neurológiai sérülések azonnali szűrésében.
+
+A modern hadszíntereken a tüzérségi belövések és improvizált robbanószerkezetek (IED) lökéshullámai által okozott enyhe traumás agysérülés (blast-induced mTBI / agyrázkódás) gyakran semmilyen külső vérzéssel vagy eszméletvesztéssel nem jár, így a katona látszólag harcképes marad, miközben döntéshozatali és koordinációs képessége súlyosan sérült. Egy hordozható okulometriás eszközzel (vagy a taktikai szemüveggel) közvetlenül a robbanás után elvégzett 30 másodperces pupilláris fényreflex- (PLR) és szakkádteszt azonnal kimutatja a látens agytörzsi vagy kérgi érintettséget, lehetővé téve a sérült katona haladéktalan kivonását a tűzvonalból.
+
+\subsection{Kiképzés és teljesítményoptimalizálás}
+
+A katonai kiképzésben - legyen szó lövészeti szimulátorokról, drónoperátori felkészítésről vagy törzsvezetési gyakorlatokról - a hagyományos értékelés kizárólag a végeredményt (találati pontosságot, végrehajtási időt) méri, azt azonban nem látja, mekkora belső „kognitív árat” fizetett érte a kiképzendő állomány \cite{twabu2025}. Két tisztjelölt elérheti pontosan ugyanazt a pontszámot egy harcászati szimulációban, ám míg az egyikük alacsony pupillometriás terhelés mellett, bőséges mentális tartalékkal oldja meg a feladatot, addig a másikuk a teljesítőképessége végső határán egyensúlyozva, a kimerülés szélén teljesít.
+
+Az adaptív architektúra beépítése a kiképzési szimulátorokba lehetővé teszi az egyénre szabott terhelésadagolást (stress inoculation training). A rendszer a mért kognitív indexek alapján dinamikusan skálázza a szimuláció nehézségét (az ellenséges célpontok számát, a kommunikációs zavarás mértékét), így a kiképzendő katonát folyamatosan az optimális tanulási zónában tartja, elkerülve mind az unalomból fakadó rutinmunkát, mind a korai mentális összeomlást.
+
+\subsection{Stressz és trauma korai felismerése}
+
+A katonai szolgálat humánvédelmi felelőssége nem ér véget a harci feladat lezárultával. A tartós harctéri stressz és a traumatikus események feldolgozatlansága gyakran vezet akut stresszreakcióhoz, majd krónikus poszttraumás stressz zavarhoz (PTSD). Mivel a katonai kultúrában a pszichés nehézségek bevallását még ma is gyakran stigma övezi, a kérdőíves szűrések sokszor nem szűrik ki a veszélyeztetett állományt.
+
+A bevetések utáni rutinszerű, objektív okulometriás szűrés - különösen az érzelmi töltetű vagy fenyegető vizuális ingerekre adott autonóm pupillatágulat és a nyugalmi vegetatív tónus vizsgálata - stigmamentes, fiziológiai alapú korai előrejelzőként működhet. A vegetatív hiperreaktivitás korai felismerése lehetővé teszi a célzott pszichológiai tehermentesítést és regenerációt még azelőtt, hogy a klinikai szintű PTSD tartósan kialakulna.
+
+\subsection{Autonóm harctéri döntéstámogatás és fokozatos delegálás}
+
+A valós idejű kognitív állapotbecslés legfejlettebb - egyben legnagyobb körültekintést igénylő - katonai alkalmazása az ember-gép csapatmunka (Human-Machine Teaming) dinamikus vezérlése. Egy komplex híradó-informatikai vagy drónelhárító vezetési ponton, amikor az operátor Kognitív Terhelési és Fáradtsági Indexe átlépi a kritikus küszöböt, egy gépi látásra épülő autonóm alrendszer képes átvenni az előzetes célpont-szegmentálást és a rutinszerű adatszűrést.
+
+A biztonságkritikus rendszerek ergonómiája azonban egyértelművé teszi, hogy a kontroll átadása nem történhet bináris („mindent vagy semmit”) módon. Az európai légiforgalmi és védelmi adaptív automatizálási kutatások (pl. a CODA - \emph{Controller Adaptive Automation} koncepció) nyomán a javasolt architektúra háromfokozatú, visszavonható proaktivitási modellt alkalmaz (\ref{fig:military_delegation}. ábra):
+\begin{enumerate}
+    \item \textbf{Manuális (Asszisztált) mód:} Normál kognitív állapotban minden döntést és műveletet az ember végez; a rendszer csupán a háttérben figyel, és szükség esetén diszkrét figyelmeztetéseket jelenít meg.
+    \item \textbf{Proaktív-javaslati mód (Management by Consent):} Mérsékelt túlterhelés vagy kezdődő fáradtság esetén az MI előkészíti a döntési alternatívákat (pl. kijelöli a javasolt kommunikációs frekvenciaváltást vagy célpont-prioritást), de a végrehajtáshoz a humán operátor kifejezett jóváhagyása (gombnyomása) szükséges.
+    \item \textbf{Proaktív-erős mód (Management by Exception):} Kritikus kognitív telítődés vagy akut veszélyhelyzet esetén az autonóm rendszer önállóan megkezdi a nem-halálos, védelmi vagy adatszűrési részfeladatok végrehajtását, ám a humán döntéshozónak mindvégig fennmarad az azonnali vétójoga és a kontroll visszavételének lehetősége.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        human/.style={rectangle, draw=red!70!black, thick, fill=red!5, text width=5.5cm, minimum height=1cm, align=center, rounded corners=4pt, font=\small\bfseries},
+        concept/.style={rectangle, draw=purple!70!black, thick, fill=purple!5, text width=5.5cm, minimum height=1cm, align=center, rounded corners=4pt},
+        decision/.style={diamond, draw=orange!80!black, thick, fill=orange!10, aspect=1.5, text width=2.5cm, align=center, inner sep=1pt},
+        block/.style={rectangle, draw=blue!70!black, thick, fill=blue!5, text width=3.5cm, minimum height=1.2cm, align=center, rounded corners=4pt},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[human] (operator) at (0, 0) {Humán operátor};
+        \node[concept] (pupil) at (0, -2.5) {Szemkövetési és pupillometriai monitorozás};
+        \node[decision] (kognitiv) at (0, -5.5) {Kognitív készenlét értékelése};
+        \node[decision] (mod) at (0, -9) {Proaktivitási szint};
+        \node[block] (auto1) at (-5, -12) {Manuális mód\\\footnotesize(figyelmeztetés)};
+        \node[block] (auto2) at (0, -12) {Proaktív-javaslat\\\footnotesize(megerősítés)};
+        \node[block] (auto3) at (5, -12) {Proaktív-erős\\\footnotesize(vétójog)};
+        \node[human] (vissza) at (0, -14.5) {Humán kontroll visszavétele};
+        \draw[arrow] (operator) -- (pupil);
+        \draw[arrow] (pupil) -- (kognitiv);
+        \draw[arrow] (kognitiv) -- (mod);
+        \draw[arrow] (mod.south) -- ++(0,-0.8) -| (auto1.north);
+        \draw[arrow] (mod.south) -- (auto2.north);
+        \draw[arrow] (mod.south) -- ++(0,-0.8) -| (auto3.north);
+        \draw[arrow, dashed, draw=gray] (auto1.south) |- (vissza.west);
+        \draw[arrow, dashed, draw=gray] (auto3.south) |- (vissza.east);
+        \draw[arrow, dashed, draw=gray] (auto2.south) -- (vissza.north);
+    \end{tikzpicture}
+    \caption{A fokozatos, visszavonható harctéri delegálás háromszintű modellje. A humán operátor minden szinten megtartja a vétójogot és a visszavétel lehetőségét.}
+    \label{fig:military_delegation}
+\end{figure}
+
+Ez a fokozatos delegálási architektúra biztosítja, hogy a katona a leginkább megterhelő percekben se veszítse el a parancsnoki felügyeletet, miközben a gépi asszisztencia megóvja az információs összeomlástól.
+
+\subsection{A humán szubjektum védelme a katonai kontextusban}
+
+A honvédelmi alkalmazások összegzéseként rögzíteni kell egy áthághatatlan etikai és tervezési határvonalat: az okulometriás és neurokognitív döntéstámogatás célja a katona életének, egészségének és döntési integritásának védelme, nem pedig egy „biorobotként” kezelt humán erőforrás végletekig történő kizsigerelése. Az architektúra által gyűjtött fiziológiai adatok orvosi-ergonómiai védettséget kell hogy élvezzenek; azok nem használhatók fel fegyelmi eljárásokban vagy a személyi állomány megbélyegzésére, és halálos erő alkalmazásáról szóló döntést (lethal autonomous engagement) a rendszer még kritikus operátori fáradtság esetén sem hozhat emberi jóváhagyás nélkül.
+
+\section{KLINIKAI ALKALMAZÁSI LEHETŐSÉGEK}
+
+\subsection{Neurológiai diagnosztika}
+
+A klinikai neurológiában a kvantitatív pupillometria és a nagy felbontású szemkövetés olyan funkcionális biomarkereket szolgáltat, amelyek a strukturális képalkotó eljárásokkal (CT, MRI) még nem látható, korai vagy diffúz idegrendszeri eltéréseket is kimutatják. Enyhe traumás agysérülések (mTBI) és sport- vagy baleseti agyrázkódások esetén a pupilláris fényreflex (PLR) megnyúlt latenciája, a csökkent kontrakciós sebesség, valamint a közeli pontra való konvergencia-elégtelenség objektív, szimulálhatatlan bizonyítékot ad az agytörzsi és kérgi pályák átmeneti funkciózavaráról.
+
+Hasonlóan ígéretes a módszer a neurodegeneratív kórképek preklinikai szűrésében. Alzheimer-kórban a kolinerg (Edinger--Westphal-magot érintő) és noradrenerg (locus coeruleus) pályák korai pusztulása miatt a fényreflex amplitúdója és sebessége jellegzetesen csökken, az antiszakkád-feladatokban (amikor a felvillanó ingertől ellenkező irányba kell nézni) pedig drasztikusan megnő a gátlási hibák aránya a frontális lebeny érintettsége miatt. Parkinson-kórban a bazális ganglionok dopaminerg deficitje szakkádikus hipometriát (a tekintet többlépcsős, „fogaskerékszerű” célra ugrását) és a sötétadaptáció zavarát okozza. Szklerózis multiplexben (SM) pedig az internukleáris oftalmoplégia szubklinikai formája - a két szem konjugált mozgásának ezredmásodperces aszinkronitása - és a relatív afferens pupilladefektus (RAPD) már a korai demielinizációs szakaszban pontosan mérhető.
+
+\subsection{Pszichiátriai alkalmazások: a szkizofrénia spektrumzavar}
+
+A klinikai pszichiátria egyik legnagyobb módszertani nehézsége, hogy a diagnosztika mindmáig szinte kizárólag a beteg szubjektív beszámolójára és a klinikai interjú megfigyeléseire támaszkodik. Az okulometriás vizsgálatok éppen ezen a területen nyújtanak régóta keresett, objektív neurobiológiai támpontokat (endofenotípusokat).
+
+Szkizofrénia spektrumzavarban az okulomotoros eltérések a legjobban dokumentált pszichiátriai biomarkerek közé tartoznak. A betegek jelentős részénél - sőt, gyakran tünetmentes elsőfokú hozzátartozóiknál is - megfigyelhető a sima követő szemmozgások (smooth pursuit) zavara: a szem nem képes egyenletesen követni a mozgó céltárgyat, hanem lemarad, és apró korrekciós szakkádokkal próbálja utolérni azt. Komplex vizuális jelenetek (például emberi arcok) szemlélésekor a szkizofrén páciensek letapogatási útvonala (scanpath) jellegzetesen beszűkült: kevesebb, de hosszabb ideig tartó fixációt végeznek, és kerülik az érzelmileg informatív szem- és szájtájékot. Emellett a munkamemória-feladatok során mért csökkent pupillatágulati válasz (TEPR) közvetlenül tükrözi a dorzolaterális prefrontális kéreg hipofunkcióját és a kognitív erőforrás-allokáció zavarát.
+
+\subsection{Pszichiátriai alkalmazások: a poszttraumás stressz zavar}
+
+A poszttraumás stressz zavar (PTSD) kórismézésében és terápiakövetésében a pupillometria az autonóm idegrendszeri hiperarousal közvetlen mutatójaként szolgál. A PTSD-ben szenvedő páciensek szimpatikus alapaktivitása fokozott, ami gyakran csökkent nyugalmi pupilla-fluktuációval és a traumára emlékeztető vagy általánosan fenyegető vizuális ingerekre adott eltúlzott, elhúzódó pupillatágulattal jár. Mivel ez a limbikus (amygdala--locus coeruleus tengelyű) válasz teljesen akaratlan, a mérés kiküszöböli a tünetek eltitkolásából (disszimuláció) vagy esetleges felnagyításából (aggraváció) eredő diagnosztikai bizonytalanságot, és lehetővé teszi az expozíciós vagy gyógyszeres terápia hatékonyságának objektív nyomon követését.
+
+\subsection{Pszichiátriai alkalmazások: a major depresszív zavar}
+
+Major depresszív zavarban (MDD) az okulometriás profil az affektív információfeldolgozás negatív torzítását és a pszichomotoros gátoltságot képezi le. A depressziós páciensek nyugalmi pupillaátmérője és kognitív terhelésre adott pupillaválasza gyakran csökkent, miközben az érzelmi szavak vagy képek bemutatásakor (pl. szomorú arcok láttán) elhúzódóbb pupillatágulatot mutatnak, ami a negatív ingereken való rágódás (rumináció) neurofiziológiai korrelátuma. A szemkövetési hőtérképeken jól látható, hogy a betegek tekintete aránytalanul hosszú időre tapad le a diszfóriás képi elemekre, miközben a pozitív ingereket gyorsan elhagyják. A terápia során ezen figyelmi torzítások fokozatos normalizálódása már a szubjektív hangulatjavulás előtt jelezheti az antidepresszáns kezelés beválását.
+
+\subsection{Pszichiátriai alkalmazások: a szorongásos zavarok}
+
+A generalizált szorongásos zavarban (GAD), pánikzavarban és szociális fóbiában a vizuális figyelem „hipervigilanciája” és elkerülő mintázata (vigilance-avoidance pattern) ragadható meg szemkövetéssel. A szorongó páciensek első szakkádja rendkívül rövid latenciával, szinte mágnesként irányul a potenciálisan fenyegető vagy kétértelmű ingerekre (ez a szorongásos figyelmi torzítás egyik alapvető sajátossága), amelyet a későbbi fázisban gyakran a tekintet tudatos elkapása és fokozott pupilláris stresszválasz követ. Ezen mikrodinamikai jellemzők pontos mérése hatékonyan támogatja a differenciáldiagnosztikát és a kognitív viselkedésterápiás (CBT) figyelmi tréningek személyre szabását.
+
+\subsection{Sebészeti és intenzív terápiás monitorozás}
+
+A perioperatív és intenzív terápiás (ITO) gyakorlatban az automatizált infravörös pupillometria három kritikus területen védi a kommunikációra képtelen pácienst:
+\begin{itemize}
+    \item \textbf{Anesztéziamélység és nocicepció (fájdalom) mérése:} Általános érzéstelenítés vagy gépi lélegeztetés mellett a pupilláris fájdalomreflex (Pupillary Pain Index, PPI) - a pupilla mikrotágulata fájdalmas sebészi ingerre - sokkal érzékenyebben és gyorsabban jelzi az opioiddózis elégtelenségét, mint a vérnyomás vagy a pulzusszám emelkedése.
+    \item \textbf{Neurointenzív monitorozás:} Súlyos koponyasérültek, agyvérzésen átesett vagy kómás betegek ágy melletti folyamatos követésekor a Neurológiai Pupillaindex (NPi) romlása azonnal riasztja az ügyeletes orvost a beékelődés veszélyére.
+    \item \textbf{A sebész saját kognitív terhelésének követése:} Mikrosebészeti vagy robotasszisztált (pl. da Vinci) műtétek során a sebész betekintő konzoljába épített szemkövető magát az operáló orvost is védi a többórás beavatkozások alatti vizuális és mentális kifáradástól.
+\end{itemize}
+
+\subsection{Fejlődési és gyermekpszichiátriai alkalmazások}
+
+A gyermekpszichiátriában a non-invazív, érintésmentes videó-szemkövetés különösen értékes, mivel a kisgyermekek gyakran még nem képesek verbálisan beszámolni belső élményeikről, és nehezen tolerálják a fejre helyezett elektródákat. Autizmus spektrumzavar (ASD) korai szűrésében már csecsemő- és kisgyermekkorban kimutatható, hogy a gyermek tekintete a szociális jelenetekben az emberi szemek helyett a szájmozgást vagy az élettelen háttérobjektumokat részesíti előnyben, miközben a társas mosolyra adott pupillatágulati válasz csökkent. Figyelemhiányos hiperaktivitás-zavarban (ADHD) pedig a fixációs instabilitás, a gátolatlan mikroszakkádok megszaporodása és az antiszakkád-hibák magas aránya nyújt objektív kiegészítést a pedagógusi és szülői kérdőívek mellé.
+
+Mivel a kiskorú páciensek különösen sérülékeny csoportot alkotnak, esetükben a humán szubjektum védelme megköveteli a játékosított (gamifikált), rövid mérési protokollokat, amelyek semmilyen vizsgálati szorongást nem keltenek a gyermekben.
+
+\subsection{Kognitív állapotfüggő diagnosztikai AI}
+
+Az eddigiekben a szemkövetést elsősorban a páciens vizsgálatának eszközeként tárgyaltuk. A javasolt adaptív architektúra azonban ennél tovább lép: összekapcsolja az I. fejezetben bemutatott orvosi képfeldolgozó MI-rendszereket a diagnosztizáló szakorvos saját okulometriás monitorozásával, megteremtve a \emph{kognitív állapotfüggő diagnosztikai döntéstámogatást} (\ref{fig:fatigue_ai}. ábra).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        node distance=1.5cm and 1.5cm,
+        box/.style={rectangle, draw=blue!60!black, thick, fill=blue!5, text width=3.5cm, minimum height=1cm, align=center, rounded corners=4pt},
+        humanbox/.style={rectangle, draw=red!60!black, thick, fill=red!5, text width=3.5cm, minimum height=1cm, align=center, rounded corners=4pt, font=\bfseries},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[box] (ai) {Diagnosztikai AI};
+        \node[humanbox, right=of ai] (human) {Humán szakorvos (fáradt)};
+        \node[box, below=of human] (pupil) {Pupillometriai monitorozás};
+        \node[box, below=of pupil] (trigger) {Fáradtság detektálása};
+        \node[box, below left=1cm and -0.5cm of trigger] (ai_boost) {AI érzékenység növelése (Naiv)};
+        \node[box, below right=1cm and -0.5cm of trigger] (human_check) {Emberi ellenőrzés kikényszerítése (Helyes)};
+        \draw[arrow] (ai) -- (human) node[midway, above, font=\scriptsize] {Támogatás};
+        \draw[arrow] (human) -- (pupil);
+        \draw[arrow] (pupil) -- (trigger);
+        \draw[arrow] (trigger) -- (ai_boost);
+        \draw[arrow] (trigger) -- (human_check);
+        \node[right=0.2cm of ai_boost, text=red, font=\scriptsize] {Nem működik!};
+        \node[right=0.2cm of human_check, text=green!70!black, font=\scriptsize] {Hatékony!};
+    \end{tikzpicture}
+    \caption{A fáradtság-vezérelt diagnosztikai AI két lehetséges tervezési útja. A naiv megközelítés (több gépi jelölés) helyett a strukturált humán ellenőrzés és a fixációs minőségbiztosítás védi meg a pácienst és az orvost.}
+    \label{fig:fatigue_ai}
+\end{figure}
+
+Egy felületes, naiv mérnöki megközelítés szerint ha a szemkövető azt érzékeli, hogy a radiológus vagy patológus fáradt, a képfeldolgozó MI-nek egyszerűen alacsonyabbra kell vennie a riasztási küszöbét, és még több gyanús régiót kell berajzolnia a képernyőre. A klinikai tapasztalatok és a humán-MI interakciós kutatások \cite{wang2026, tanveer2026} azonban rávilágítanak arra, hogy ez a stratégia kontraproduktív: a kimerült szakorvos nem képes kritikusan felülbírálni a megnövekedett számú gépi találatot, így vagy vakon elfogadja a téves pozitív jelöléseket (automation bias), vagy a vizuális túlterhelés miatt teljesen kikapcsolja a segédletet.
+
+A humán szubjektum védelmének elvére épülő architektúra ezért gyökeresen más logikát követ. Amikor az okulometriás csatorna kritikus Fáradtsági Indexet vagy figyelmi lankadást jelez, a rendszer nem „agresszívebb MI-t”, hanem \emph{strukturált humán biztonsági protokollt} aktivál:
+\begin{enumerate}
+    \item \textbf{Fixáció-alapú lefedettség-audit (Gaze-coverage QA):} A rendszer összeveti a radiológus tényleges tekintet-hőtérképét az anatómiailag kötelezően átvizsgálandó régiókkal és a diagnosztikai MI által gyanúsnak vélt területekkel. Ha a lelet lezárásakor kiderül, hogy a fáradt orvos foveális tekintete elkerült egy magas kockázatú zónát (under-explored region), a szoftver a lelet véglegesítése előtt visszairányítja a figyelmet az adott területre.
+    \item \textbf{Kettős leletezés és pihenőidő triggere:} Tartósan magas Fáradtsági Index esetén a rendszer automatikusan megjelöli az adott munkamenet végén született határeset-leleteket egy második, pihent szakorvos általi felülvizsgálatra (peer review), a kimerült klinikusnak pedig munkaszervezési szünetet javasol.
+\end{enumerate}
+Ezzel a megoldással a szemkövető pipeline nem az orvos feje felett dönt, hanem auditálhatóvá és önkorrigálóvá teszi a humán figyelmi folyamatot.
+
+% ============================================================
+% 4. FEJEZET
+% ============================================================
+\mychapter{ADATVÉDELEM, ETIKA ÉS VALIDÁCIÓ}
+
+\section{ADATVÉDELEM, ETIKA ÉS A HUMÁN SZUBJEKTUM VÉDELME}
+
+\subsection{A biometrikus adatok különleges természete}
+
+A szemkövetési és pupillometriai adatok az Európai Unió Általános Adatvédelmi Rendelete (GDPR 9. cikk) értelmében a személyes adatok különleges kategóriájába tartozó biometrikus adatoknak minősülnek. Mivel a szemmozgások mikrodinamikája, az írisz szerkezete és a pupillareakciók egyéni időállandói együttesen egyedi, megváltoztathatatlan biológiai lenyomatot alkotnak, a nyers adatfolyam alkalmas a természetes személy egyértelmű azonosítására. Ebből következően a rendszer adatkezelési architektúrájának a legszigorúbb kriptográfiai és hozzáférés-védelmi elvárásoknak kell megfelelnie: az alapértelmezett működési módnak a peremhálózati (edge), lokális jelfeldolgozásnak kell lennie, ahol a nyers videófolyam a jellemzőkinyerés után azonnal törlődik a memóriából, és kizárólag az anonimizált vagy pszeudonimizált kognitív indexek kerülnek rögzítésre.
+
+\subsection{A „következtetett mentális adatok” és a neurorights}
+
+Az okulometriás telemetria azonban egy lényeges ponton túlmutat a klasszikus biometrikus azonosítókon (mint az ujjlenyomat vagy az arcfelismerés): a pupilla és a tekintet nem csupán azt árulja el, hogy \emph{ki} a felhasználó, hanem azt is, hogy \emph{milyen belső mentális és érzelmi állapotban} van. A nemzetközi neuroetikai és információs jogi diskurzus ezeket az akaratlan fiziológiai jelekből gépi tanulással kinyert információkat „következtetett mentális adatoknak” (\emph{inferred mental data}) nevezi. A hagyományos adatvédelmi beleegyezési modellek - amelyek a felhasználó által tudatosan megadott (\emph{declared}) adatokra épülnek - nem nyújtanak elégséges védelmet akkor, amikor az egyén nem is tudja tudatosan kontrollálni, milyen vegetatív pupillaválaszt ad egy-egy ingerre.
+
+Erre a joghézagra reagál a \emph{neurorights} (neurojogok) nemzetközi kezdeményezése, amely öt alapvető emberi jogi pillért fogalmaz meg a neurotechnológiák korára:
+\begin{enumerate}
+    \item \textbf{A mentális magánszféra joga (Mental Privacy):} A belső idegrendszeri és kognitív folyamatokból származó adatok nem vonhatók ki az egyén rendelkezési köréből.
+    \item \textbf{A személyes identitás és mentális integritás joga (Mental Integrity):} A neuroadaptív rendszerek nem avatkozhatnak be károsan vagy manipulatívan az egyén pszichés egyensúlyába.
+    \item \textbf{A kognitív szabadság és önrendelkezés joga (Cognitive Liberty):} Az egyén joga, hogy maga döntsön saját mentális állapotainak monitorozásáról vagy modulálásáról.
+    \item \textbf{A kognitív képességekhez való méltányos hozzáférés joga.}
+    \item \textbf{Az algoritmikus torzításoktól és neuro-diszkriminációtól való védelem joga:} Senkit sem érhet munkajogi, szolgálati vagy biztosítási hátrány a neurobiológiai és kognitív profilja alapján.
+\end{enumerate}
+A dolgozatban felvázolt architektúra ezeket a neurojogokat közvetlenül beépíti az adatkezelési protokollba: a beleegyezésnek kifejezetten ki kell terjednie a következtetett mentális állapotokra is, a neuro-diszkrimináció tilalmát pedig technikai adatszeparációval kell kikényszeríteni.
+
+\subsection{A tájékozott beleegyezés elve}
+
+Mind a klinikai vizsgálatokban, mind a munkahelyi vagy honvédelmi alkalmazásban sarokkő a valódi, tájékozott beleegyezés (\emph{informed consent}) biztosítása. A felhasználót a rendszer bekapcsolása előtt világos, közérthető nyelven tájékoztatni kell arról, hogy a kamera pontosan milyen okulometriás paramétereket mér, azokból milyen algoritmikus következtetéseket von le (pl. fáradtság, munkamemória-terhelés), az adatok hol és meddig tárolódnak, és kik férhetnek hozzá az aggregált mutatókhoz.
+
+Különösen kényes kérdés a beleegyezés önkéntessége egy alá-fölérendeltségi viszonyokra épülő katonai vagy kórházi hierarchiában. Ha a beosztott katona vagy rezidens orvos úgy érzi, hogy a monitorozás visszautasítása fegyelmi következménnyel vagy szakmai mellőzéssel jár, a beleegyezés puszta formalitássá üresedik. Ezért intézményi szinten kell garantálni, hogy a kognitív döntéstámogató rendszer egyéni védőeszközként (mintegy „kognitív védősisakként”) funkcionáljon, amelynek adataihoz a munkáltató vagy a felettes parancsnok egyéni, büntető-minősítő jelleggel nem férhet hozzá.
+
+\subsection{Adathordozhatóság és a törléshez való jog}
+
+A GDPR-ral és a kognitív szuverenitás elvével összhangban a rendszernek technikai szinten kell garantálnia az adathordozhatóságot és a végleges törléshez való jogot („az elfeledtetéshez való jog”). A felhasználó számára biztosítani kell egy olyan helyi felületet, amelyen keresztül saját egyéni kalibrációs profilját és történeti kognitív indexeit szabványos, géppel olvasható formátumban (pl. JSON/CSV) exportálhatja, vagy egyetlen paranccsal kezdeményezheti profiljának kriptográfiai megsemmisítését (többszörös felülírással történő adattörlést), amely után a NEAT-modell azonnal visszaáll az alapértelmezett, nem személyre szabott induló állapotba.
+
+\subsection{A kettős felhasználás problémája}
+
+A bemutatott architektúra klasszikus kettős felhasználású (\emph{dual-use}) technológia: ugyanaz az okulometriás jelfeldolgozó és állapotbecslő csővezeték, amely a klinikumban a PTSD vagy az Alzheimer-kór korai felismerését és a sebész tehermentesítését szolgálja, a honvédelemben a harctéri vezetési pontok és fegyverrendszerek kezelőinek hatékonyságát támogatja. A kettős felhasználás mindig magában hordozza a funkciócsúszás (function creep) veszélyét: a védelmi célra kifejlesztett eszközt megkísérelhetik kényszerítő kihallgatásra, poligráf-szerű hazugságvizsgálatra vagy munkahelyi mikromenedzsmentre felhasználni.
+
+Ennek megelőzése érdekében tudományos igényességgel kell rögzíteni a technológia episztemológiai korlátait is. A pupillometria és a szemkövetés \emph{nem alkalmas gondolatolvasásra}, és önmagában nem képes a megtévesztési szándék (hazugság) specifikus kimutatására sem, mivel a pupillatágulat csupán az általános vegetatív arousalt és a kognitív erőfeszítést tükrözi, annak szemantikai okát azonban nem. Ezen korlátok egyértelmű dokumentálása védi meg a technológiát az áltudományos vagy visszaélésszerű alkalmazásoktól.
+
+\subsection{A „gép jobban tudja” dilemma és a Meaningful Human Control}
+
+Az adaptív döntéstámogatás legmélyebb filozófiai és jogi dilemmája abban a határhelyzetben merül fel, amikor az okulometriás mutatók szerint az emberi döntéshozó akut kimerültség, sokk vagy traumás agysérülés miatt igazolhatóan beszámíthatatlan vagy súlyosan korlátozott állapotba kerül, miközben a gépi modell statisztikailag sokkal megbízhatóbb döntésre lenne képes. Felmerül a kérdés: elveheti-e ilyenkor a gép a döntési jogot az embertől a humán szubjektum és a környezet védelmében?
+
+A nemzetközi humanitárius jog és a mesterséges intelligencia etikája az \emph{érdemi emberi kontroll} (\emph{Meaningful Human Control}, MHC) doktrínáján keresztül határozott nemmel válaszol a teljes gépi hatalomátvételre. Ha egy autonóm rendszer véglegesen felülbírálhatja az emberi parancsnokot vagy az orvost, azzal felszámolja a morális és jogi felelősségviselés (accountability) láncát: egy algoritmus nem vonható sem hadbíróság, sem orvosi etikai bizottság elé. Másfelől az is látható, hogy a puszta formális emberi jelenlét („rubber-stamping”, amikor a kimerült ember csak vakon leokézza a gép döntését) szintén kiüresíti az MHC-t \cite{wang2026}.
+
+A dolgozat álláspontja szerint a dilemmát nem a kontroll gépnek való átadásával, hanem \emph{horizontális humán redundanciával és biztonsági megszakítással} kell feloldani. Ha a rendszer azt érzékeli, hogy az operátor vagy a klinikus kognitív indexei a biztonságos döntéshozatali küszöb alá zuhantak, az architektúra nem dönt az ember helyett, hanem megállítja vagy lelassítja a folyamatot, és a döntési jogkört egy másik, pihent humán döntéshozóhoz (a váltóparancsnokhoz vagy a második szakorvoshoz) irányítja át.
+
+\subsection{A humán védelem operacionalizálása: kalibrált lassítás és kognitív compliance audit}
+
+Ahhoz, hogy a humán szubjektum védelme ne maradjon puszta elméleti kívánalom, az architektúra két konkrét, szoftveresen implementálható védőmechanizmust vezet be (\ref{fig:human_protection}. ábra).
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        font=\small\sffamily,
+        box/.style={rectangle, draw=blue!60!black, thick, fill=blue!5, text width=5cm, minimum height=1.5cm, align=center, rounded corners=4pt},
+        arrow/.style={thick, ->, >=stealth, draw=black!70}
+    ]
+        \node[box] (trigger) at (-3, 0) {\textbf{Trigger:} Kritikus kognitív terhelés};
+        \node[box, fill=orange!10] (decel) at (-3, -2.5) {\textbf{Kalibrált lassítás:}\\ Információsűrűség csökkentése, szünet};
+        \node[box] (measure) at (3, 0) {\textbf{Mérés:} Zárt hurok hosszú távú hatása};
+        \node[box, fill=green!10] (audit) at (3, -2.5) {\textbf{Kognitív compliance audit:}\\ Reflektív döntéshozatal védelme};
+        \draw[arrow] (trigger) -- (decel);
+        \draw[arrow] (measure) -- (audit);
+        \node[above=0.2cm of trigger, font=\bfseries] {Valós idejű védelem};
+        \node[above=0.2cm of measure, font=\bfseries] {Intézményi garancia};
+    \end{tikzpicture}
+    \caption{A humán védelem két operacionalizált mérnöki mechanizmusa: a valós idejű kalibrált lassítás és a rendszerszintű kognitív compliance audit.}
+    \label{fig:human_protection}
+\end{figure}
+
+Az első mechanizmus a \emph{kalibrált lassítás} (\emph{calibrated deceleration}). A legtöbb ipari és informatikai rendszer célja a sebesség és az áteresztőképesség (throughput) maximalizálása, ami túlterhelés esetén gyorsan hibákhoz vezet. A kalibrált lassítás ezzel szemben - amikor az okulometriás csatorna a munkamemória telítődését észleli - szándékosan „súrlódást” (constructive friction) iktat be a folyamatba: mérsékli az új feladatok vagy üzenetek beérkezési ütemét, letisztítja a grafikus felületet, és kikényszerít egy néhány másodperces mikro-szünetet a kritikus döntés megerősítése előtt, visszaadva a prefrontális kéregnek a reflektív mérlegeléshez (Kahneman-féle 2-es rendszerű gondolkodáshoz \cite{kahneman1973}) szükséges időablakot.
+
+A második mechanizmus a \emph{kognitív compliance audit}. Ez egy olyan rendszeres, naplóalapú minőségbiztosítási eljárás, amely nem az egyes dolgozókat, hanem magát az adaptív szoftvert vizsgálja: elemzi, hogy a rendszer beavatkozásai valóban csökkentették-e a felhasználók terhelését, nem okoztak-e riasztási fáradtságot, és milyen arányban éltek a felhasználók a felülbírálati jogukkal. Ha az audit azt mutatja, hogy az operátorok 95\% feletti arányban, pillanatnyi fixáció nélkül fogadják el a gép javaslatait, az a kognitív lustaság \cite{tanveer2026} és az érdemi emberi kontroll elvesztésének jele, ami a rendszer paramétereinek azonnali újrakalibrálását írja elő.
+
+\subsection{Adatvédelmi irányelvek és szabványok}
+
+A rendszer éles üzembe állításához az architektúrának egyidejűleg kell teljesítenie az európai GDPR és az Európai Unió Mesterséges Intelligencia Rendelete (EU AI Act -- amely az egészségügyi és biometrikus érzelem-/állapotfelismerő rendszereket a magas kockázatú kategóriába sorolja), az amerikai HIPAA egészségügyi adatvédelmi előírások, az ISO/IEC 27001 információbiztonsági szabvány, valamint a honvédelmi alkalmazások esetén irányadó NATO STANAG (Standardization Agreement) humánfaktor- és kiberbiztonsági irányelvek követelményeit.
+
+\section{VALIDÁCIÓS MEGFONTOLÁSOK}
+
+\subsection{A validáció négy szintje}
+
+Egy biztonságkritikus neurokognitív architektúra hitelesítése nem korlátozódhat pusztán a szoftverkód hibamentességének ellenőrzésére; a validációnak négy egymásra épülő szintet kell átfognia:
+\begin{enumerate}
+    \item \textbf{Komponens- és egységtesztelés (Unit Testing):} A képfeldolgozó algoritmusok (pupillaszegmentálás, Purkinje-pont-detektálás, zajszűrés) pontosságának tesztelése szintetikus és előre annotált referencia-videóadatbázisokon, változó megvilágítási és fejmozgási viszonyok mellett.
+    \item \textbf{Integrációs tesztelés:} A szenzoros bemenet, a NEAT-alapú állapotbecslő modul és az adaptív felhasználói felület közötti adatáramlás, szinkronizáció és hibakezelés vizsgálata.
+    \item \textbf{Valós idejű teljesítménytesztelés (Latency \& Throughput):} Annak igazolása, hogy a teljes csővezeték a nyers képkocka beolvasásától az adaptív döntésig terjedő ciklust képes stabilan, 20--50 milliszekundum alatti késleltetéssel végrehajtani, elkerülve a zárt hurok fáziskéséséből eredő oszcillációt.
+    \item \textbf{Humán neuroergonómiai validáció (Human-in-the-Loop Testing):} Kontrollált laboratóriumi és szimulátoros kísérletekben annak mérése, hogy a rendszer ténylegesen javítja-e a humán döntéshozó teljesítményét és csökkenti-e a hibázási rátát anélkül, hogy másodlagos megfigyelési stresszt vagy autonómiavesztést okozna.
+\end{enumerate}
+
+\subsection{Validációs metrikák}
+
+A négyszintű tesztelés eredményességét két jól elkülöníthető metrikacsoporttal kell számszerűsíteni. A \emph{technikai metrikák} közé tartozik a pupilladetektálási arány (Detection Rate, \%), a tekintetbecslés szögbeli hibája (Gaze Angular Error, fokban mérve), az állapotbecslő modell osztályozási pontossága (F1-score, ROC-AUC a kognitív terhelési szintek elkülönítésében), valamint a feldolgozási sebesség (FPS és end-to-end latencia). 
+
+A dolgozat módszertani újdonsága a \emph{humánvédelmi metrikák} beemelése a kötelező validációs protokollba. Ezek mérik a monitorozás által kiváltott szorongást (a nyugalmi vegetatív alapvonal összevetése monitorozott és nem monitorozott kontrollhelyzetben), a bizalom kalibráltságát (a felhasználó szubjektív bizalmi indexének korrelációja a modell valós megbízhatóságával), az önészlelt ágenciát és autonómiát (standardizált NASA-TLX és humánfaktor-kérdőívekkel kombinálva), valamint a kalibrált lassítás hibacsökkentő hatékonyságát.
+
+\subsection{Etikai engedélyek és protokollok}
+
+Minden olyan validációs fázis, amely élő személyek - különösen klinikai páciensek vagy katonai állomány - bevonásával zajlik, szigorú kutatásetikai engedélyezést igényel (a Helsinki Nyilatkozat elveivel összhangban, a területileg illetékes Regionális, illetve Országos Kutatásetikai Bizottság, valamint honvédelmi vizsgálatoknál a katona-egészségügyi etikai testületek jóváhagyásával). A protokolloknak garantálniuk kell a vizsgálat bármikori, indoklás és hátrányos következmény nélküli megszakíthatóságát, a sérülékeny csoportok (pszichiátriai betegek, kiskorúak, alárendelt szolgálati viszonyban lévők) fokozott védelmét, valamint a vizsgálat során esetlegesen felfedezett véletlen leletek (incidental findings, pl. korábban nem ismert látóideg- vagy agytörzsi eltérés) szakszerű orvosi kommunikációját.
+
+\subsection{A validáció mint a humán védelem eszköze}
+
+A validáció ebben a keretrendszerben nem egy egyszeri, a szoftver átadásakor lezáruló adminisztratív lépés, hanem a humán szubjektum védelmének folyamatos biztosítéka. Mivel mind a felhasználók készségszintje, mind a klinikai vagy harcászati feladatkörnyezet idővel változik (concept drift), a rendszer érvényességét a korábban bemutatott kognitív compliance auditon keresztül ciklikusan újra kell értékelni, biztosítva, hogy a technológia a teljes életciklusa alatt az emberi döntéshozó biztonságát szolgálja.
+
+\section{ÖSSZEFOGLALÁS ÉS JÖVŐBELI IRÁNYOK}
+
+\subsection{Az eredmények összefoglalása}
+
+Jelen szakdolgozat egy olyan adaptív neurokognitív és okulometriás architektúra elméleti, módszertani és etikai alapjait dolgozta ki, amely a szemmozgások és a pupilladinamika valós idejű elemzésével nyújt intelligens döntéstámogatást biztonságkritikus környezetekben. A munka öt fejezeten keresztül építette fel érvelését.
+
+Az \textbf{I. fejezetben} áttekintettük a mesterséges intelligencia modern orvosdiagnosztikai alkalmazásait az onkológiai szűrésektől és a szepszis-előrejelzéstől a digitális patológián át a precíziós gyógyszerkutatásig. Rávilágítottunk arra, hogy bár e rendszerek analitikai teljesítménye kiemelkedő, a döntési lánc végső szeme továbbra is a humán szakértő marad, akinek mentális kifáradása és kognitív túlterhelése „csendes hibázáshoz” vezethet \cite{wang2026}. Ebből vezettük le a humán állapot valós idejű, objektív monitorozásának mérnöki szükségességét.
+
+A \textbf{II. fejezetben} felépítettük a javasolt okulometriás rendszer elméleti modelljét. Bemutattuk, miként tükrözi a pupilla átmérője a locus coeruleus--noradrenerg rendszeren keresztül a munkamemória terhelését és az éberségi szintet \cite{beatty1982, eckstein2017}, illetve hogyan árulkodnak a szakkádok, fixációk, mikroszakkádok és sima követő mozgások a kortikális és agytörzsi hálózatok állapotáról. Az ACT-R kognitív architektúra \cite{anderson2007} és a Kognitív Terhelés Elmélete \cite{sweller2011, cowan2010} segítségével párhuzamot vontunk az emberi munkamemória és a gépi kontextusablak korlátai között \cite{wang2026}. Megindokoltuk, miért kínál a hálózati topológiát evolucionáris úton fejlesztő NEAT algoritmus \cite{stanley2002} átláthatóbb, minta-hatékonyabb és jobban személyre szabható alternatívát a „fekete doboz” mélyhálózatokkal szemben, majd felvázoltuk a négyrétegű koncepcionális modellt és a megfigyelő hatás kivédésének módját.
+
+A \textbf{III. fejezetben} részletesen dokumentáltuk a megvalósított szoftverrendszer követelményeit, rétegelt architektúráját, képfeldolgozási csővezetékét, kalibrációját, adatmodelljét és riportálását. A \textbf{IV. fejezetben} elemeztük a technológia kettős felhasználási területeit: a honvédelmi alkalmazások körében a harctéri szituációs tudatosság és az éberség monitorozását, a robbanás okozta traumás agysérülések (mTBI) szűrését, a kiképzési terhelés optimalizálását és a háromszintű, visszavonható harctéri feladatdelegálást; a klinikai részben pedig a neurodegeneratív és pszichiátriai alkalmazásokat. Az \textbf{V. fejezetben} végül lefektettük az adatvédelmi, neuroetikai és validációs keretrendszert.
+
+A \textbf{V. fejezetben} végül lefektettük a rendszer adatvédelmi, neuroetikai és validációs keretrendszerét, a következtetett mentális adatok, a neurorights és a Meaningful Human Control elvei mentén, operacionalizálva a kalibrált lassítás és a kognitív compliance audit mechanizmusait.
+
+\subsection{A humán szubjektum védelmének igazolása}
+
+A dolgozat legfontosabb következtetése, hogy a „humán szubjektum védelme” nem pusztán utólagos jogi vagy bioetikai korlát, hanem egy neurokognitív rendszer legfőbb működési és minőségi kritériuma. Egy döntéstámogató architektúra akkor és csak akkor tekinthető sikeresnek, ha egyidejűleg óvja meg a döntéshozót (a katonát vagy a klinikust) a kognitív összeomlástól és az autonómiavesztéstől, a döntés tárgyát képező személyt (a pácienst vagy a bajtársat) pedig a kimerültségből fakadó végzetes szakmai hibáktól. A személyre szabott baseline kalibráció, a ritkított és magyarázható NEAT-topológia, a fokozatos delegálás, a kalibrált lassítás és a lokális adatfeldolgozás együttesen garantálják, hogy ez a védelem a napi gyakorlatban is érvényesüljön.
+
+\subsection{Jövőbeli irányok}
+
+A felvázolt koncepcionális architektúra számos konkrét kutatás-fejlesztési irányban vihető tovább:
+\begin{itemize}
+    \item \textbf{Binokuláris és vergencia-analízis kiterjesztése:} A két szem független, nagy frekvenciájú követésével a térbeli mélységészlelés és a konvergencia-kifáradás még finomabb mutatói nyerhetők ki.
+    \item \textbf{Integráció hordozható és kiterjesztett valóság (AR/HUD) eszközökbe:} A jelfeldolgozó csővezeték optimalizálása alacsony fogyasztású beágyazott rendszerekre, lehetővé téve a taktikai szemüvegekben és sebészi fejkijelzőkben való valós idejű futtatást.
+    \item \textbf{Föderált tanulás (Federated Learning):} Olyan elosztott tanítási protokoll kidolgozása, amelyben a globális neuroevolúciós modell úgy képes tanulni a különböző klinikai vagy katonai munkaállomások tapasztalataiból, hogy a nyers biometrikus adatok soha nem hagyják el a helyi eszközt.
+    \item \textbf{Multimodális szenzorfúzió:} Az okulometriás csatorna összekapcsolása egyéb non-invazív élettani jelekkel - különösen a szívfrekvencia-variabilitással (HRV/EKG), a galvános bőrellenállással (EDA/GSR) és a hordozható, száraz elektródás EEG-vel - a kognitív és affektív állapotok még robusztusabb szétválasztása érdekében.
+    \item \textbf{A kalibrált lassítás empirikus vizsgálata:} Longitudinális szimulátoros mérések annak számszerűsítésére, hogy a dinamikus tempócsökkentés milyen mértékben csökkenti a diagnosztikai és harcászati hibákat hosszú műszakok során.
+\end{itemize}
+
+% ============================================================
+% IRODALOMJEGYZÉK
+% ============================================================
+\newpage
+\addcontentsline{toc}{chapter}{IRODALOMJEGYZÉK}
+\renewcommand{\bibname}{\centering IRODALOMJEGYZÉK}
+\markboth{IRODALOMJEGYZÉK}{}
+
+% --- IDE KERÜL A JAVÍTÁS ---
+\begingroup
+\singlespacing      % Szimpla sortávolság az irodalomjegyzéknek
+\setlength{\parskip}{2pt} % Kisebb térköz a tételek között
+% ---------------------------
+
+\begin{thebibliography}{99}
+
+\bibitem{anderson2007}
+Anderson, J. R. (2007). \textit{How can the human mind occur in the physical universe?} Oxford University Press.
+
+\bibitem{beatty1982}
+Beatty, J. (1982). Task-evoked pupillary responses, processing load, and the structure of processing resources. \textit{Psychological Bulletin, 91}(2), 276--292.
+
+\bibitem{cowan2010}
+Cowan, N. (2010). The magical mystery four: How is working memory capacity limited, and why? \textit{Current Directions in Psychological Science, 19}(1), 51--57.
+
+\bibitem{eckstein2017}
+Eckstein, M. K., Guerra-Carrillo, B., Miller Singley, A. T., \& Bunge, S. A. (2017). Beyond eye gaze: What else can eye-tracking reveal about cognition and cognitive development? \textit{Developmental Cognitive Neuroscience, 25}, 69--91.
+
+\bibitem{kahneman1973}
+Kahneman, D. (1973). \textit{Attention and effort}. Prentice-Hall.
+
+\bibitem{laCerra1998}
+La Cerra, P., \& Bingham, R. (1998). The adaptive nature of the human neurocognitive architecture: An alternative model. \textit{Proceedings of the National Academy of Sciences, 95}(19), 11290--11294.
+
+\bibitem{orlosky_jeo}
+Orlosky, J. (n.d.). \textit{About Me -- Jason Orlosky, PhD: Researcher and DIY Eye Tracking Expert}. JEO Research. https://www.jeoresearch.com/aboutme.html
+
+\bibitem{stanley2002}
+Stanley, K. O., \& Miikkulainen, R. (2002). Evolving neural networks through augmenting topologies. \textit{Evolutionary Computation, 10}(2), 99--127.
+
+\bibitem{sweller2011}
+Sweller, J. (2011). Cognitive load theory. In J. P. Mestre \& B. H. Ross (Eds.), \textit{Psychology of learning and motivation} (Vol. 55, pp. 37--76). Academic Press.
+
+\bibitem{tanveer2026}
+Tanveer, M. (2026). Artificial intelligence literacy moderating the effects of artificial intelligence use on cognitive outcomes including memory retention, decision making and cognitive laziness. \textit{Discover Psychology}. https://doi.org/10.1007/s44202-026-00697-5
+
+\bibitem{twabu2025}
+Twabu, K. (2025). Enhancing the cognitive load theory and multimedia learning framework with AI insight. \textit{Discover Education}. https://doi.org/10.1007/s44217-025-00592-6
+
+\bibitem{wang2026}
+Wang, P., Liu, H., Zou, L., \& Paas, F. (2026). Overloaded minds and machines: A cognitive load framework for human-AI symbiosis. \textit{Artificial Intelligence Review}. https://doi.org/10.1007/s10462-026-11510-z
+
+\end{thebibliography}
+\endgroup % --- A JAVÍTÁS LEZÁRÁSA ---
+
+% ============================================================
+% MELLÉKLETEK — szándékosan NINCS oldalszám, fejléc, lábléc
+% ============================================================
+\newpage
+\pagestyle{empty}
+\addcontentsline{toc}{chapter}{MELLÉKLETEK}
+
+% ------------------------------------------------------------
+% 1. Melléklet
+% ------------------------------------------------------------
+\section*{1. számú melléklet: Konzulensi nyilatkozat}
+\addcontentsline{toc}{section}{1. számú melléklet: Konzulensi nyilatkozat}
+\vspace{4cm}
+
+Alulírott \dotfill, mint a szakdolgozat konzulense nyilatkozom, hogy \\
+\textbf{Aros Damján} (Programtervező informatikus BSc) hallgató \\
+\textbf{„Adaptív neurokognitív architektúrák: Evolutív modellezés és intelligens döntéstámogatás a humán szubjektum védelmében”} című szakdolgozatát megismertem, és azt a konzultációk során folyamatosan irányítottam. A dolgozatot a bírálatra alkalmasnak tartom, és a szakdolgozat benyújtásához hozzájárulok.
+
+\vfill
+\begin{flushright}
+Sárospatak, 2027. \dotfill hó \dotfill nap \\[1.5cm]
+\begin{tabular}{c}
+\makebox[5cm]{\dotfill} \\
+Prof. Dr. Kéri Szabolcs \\
+konzulens
+\end{tabular}
+\end{flushright}
+
+\newpage
+% ------------------------------------------------------------
+% 2. Melléklet
+% ------------------------------------------------------------
+\section*{2. számú melléklet: Önálló munkáról szóló nyilatkozat}
+\addcontentsline{toc}{section}{2. számú melléklet: Önálló munkáról szóló nyilatkozat}
+\vspace{4cm}
+
+Alulírott \textbf{Aros Damján} büntetőjogi felelősségem tudatában kijelentem, hogy az általam benyújtott, \textbf{„Adaptív neurokognitív architektúrák: Evolutív modellezés és intelligens döntéstámogatás a humán szubjektum védelmében”} című szakdolgozat önálló szellemi termékem. Amennyiben mások munkáját felhasználtam, azokra megfelelően hivatkozom, beleértve a nyomtatott és az elektronikus forrásokat is.
+
+Kijelentem továbbá, hogy a szakdolgozat a Tokaj-Hegyalja Egyetem Szakdolgozat-készítési Útmutatójában foglalt követelményeknek megfelel. Aláírásommal igazolom, hogy az elektronikusan feltöltött és a papíralapú szakdolgozatom formai és tartalmi szempontból mindenben megegyezik.
+
+\vfill
+\begin{flushright}
+Sárospatak, 2027. \dotfill hó \dotfill nap \\[1.5cm]
+\begin{tabular}{c}
+\makebox[5cm]{\dotfill} \\
+Aros Damján
+\end{tabular}
+\end{flushright}
+
+\newpage
+% ------------------------------------------------------------
+% 3. Melléklet
+% ------------------------------------------------------------
+\section*{3. számú melléklet: Nyilatkozat a mesterséges intelligencia használatáról}
+\addcontentsline{toc}{section}{3. számú melléklet: Nyilatkozat a mesterséges intelligencia használatáról}
+\vspace{4cm}
+
+A Tokaj-Hegyalja Egyetem Szakdolgozat-készítési Útmutatója értelmében nyilatkozom, hogy a szakdolgozat készítése során mesterséges intelligencia (MI) alapú eszközöket az alábbi célokra és módon alkalmaztam:
+
+\begin{itemize}
+    \item \textbf{Nyelvi és stilisztikai lektorálás:} A tudományos szövegkohézió, a szaknyelvi kifejezések és a LaTeX tipográfiai kód ellenőrzése érdekében.
+    \item \textbf{Szakirodalmi feltárás és rendszerezés:} A nemzetközi angol nyelvű szakirodalmi adatbázisok áttekintése és a releváns közlemények szintézisének támogatása céljából.
+    \item \textbf{Strukturálás és ábratervezés:} A fejezetek logikai felépítésének és a TikZ blokkdiagramok vázlatának kialakítása során.
+\end{itemize}
+
+Kijelentem, hogy a dolgozat tartalmi része, az architekturális koncepció, az érvelések és a levont következtetések teljes mértékben a saját szellemi munkám eredményei. Az MI által generált javaslatokat minden esetben kritikusan felülbíráltam, szakirodalmi forrásokkal ellenőriztem, és a végső szöveget saját megfogalmazásomban rögzítettem.
+
+\vfill
+\begin{flushright}
+Sárospatak, 2027. \dotfill hó \dotfill nap \\[1.5cm]
+\begin{tabular}{c}
+\makebox[5cm]{\dotfill} \\
+Aros Damján
+\end{tabular}
+\end{flushright}
+
+\end{document}

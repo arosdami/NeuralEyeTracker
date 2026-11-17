@@ -25,6 +25,10 @@ dist-*/
 installer/
 /*.spec
 
+# React/Vite local development output
+web/node_modules/
+web/dist/
+
 # Local development media and generated exports
 /*.mp4
 /*.avi

@@ -320,20 +320,28 @@ class ReportViewer(QWidget):
             self.text_view.setPlainText(f"A megadott fájl nem létezik:\n{path}")
             self.lbl_meta.setText("")
             return False
+        display_path = path
+        if path.lower().endswith(".json"):
+            html_path = os.path.splitext(path)[0] + ".html"
+            if os.path.exists(html_path):
+                display_path = html_path
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(display_path, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             self.lbl_title.setText("Hiba")
             self.text_view.setPlainText(str(e))
             self.lbl_meta.setText("")
             return False
-        fname = os.path.basename(path)
-        mtime = os.path.getmtime(path)
+        fname = os.path.basename(display_path)
+        mtime = os.path.getmtime(display_path)
         dt = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
         self.lbl_title.setText(f"Riport: {fname}")
         self.lbl_meta.setText(f"Betöltve: {dt}")
-        self.text_view.setHtml(self._format_report(content))
+        if display_path.lower().endswith(".html"):
+            self.text_view.setHtml(content)
+        else:
+            self.text_view.setHtml(self._format_report(content))
         return True
 
     @staticmethod
@@ -383,7 +391,7 @@ class MainWindow(QMainWindow):
         project_path: str = "",
     ):
         super().__init__()
-        self.setWindowTitle("NeuroEye Lab – Clinical Edition")
+        self.setWindowTitle("Neural Eye Tracker — Klinikai munkaterület")
         self.setMinimumSize(1500, 900)
 
         self._user_data = user_data or {"username": "Kutató", "role": "operátor"}
@@ -436,39 +444,99 @@ class MainWindow(QMainWindow):
         main.setSpacing(0)
 
         main.addWidget(self._make_menubar())
+        main.addWidget(self._make_options_bar())
+        main.addWidget(self._make_patient_banner())
         main.addWidget(self._make_top_tabs())
 
         workspace = QWidget()
-        workspace_layout = QHBoxLayout(workspace)
+        workspace_layout = QVBoxLayout(workspace)
         workspace_layout.setContentsMargins(0, 0, 0, 0)
         workspace_layout.setSpacing(0)
 
-        workspace_layout.addWidget(self._make_navigation_sidebar())
         self.main_stack = QStackedWidget()
         self.main_stack.addWidget(self._make_live_page())
         self.main_stack.addWidget(self._make_calibration_page())
         self.main_stack.addWidget(self._make_analyze_page())
         self.main_stack.addWidget(self._make_system_page())
-        workspace_layout.addWidget(self.main_stack, stretch=1)
+        workspace_layout.addWidget(self.main_stack)
         main.addWidget(workspace, stretch=1)
 
         self.statusbar = QStatusBar()
-        self._status_left = QLabel("Készenlét")
+        username = self._user_data.get("username", "Kutató")
+        self._status_left = QLabel(
+            f"Orvos / operátor: {username}  •  Adatbázis: kapcsolódva"
+        )
         self.statusbar.addWidget(self._status_left)
-        self._status_right = QLabel("")
+        self._status_right = QLabel(datetime.now().strftime("%Y. %m. %d.  %H:%M:%S"))
         self.statusbar.addPermanentWidget(self._status_right)
         self.setStatusBar(self.statusbar)
+
+    def _make_patient_banner(self) -> QWidget:
+        banner = QFrame()
+        banner.setObjectName("patientBanner")
+        banner.setFixedHeight(92)
+        layout = QHBoxLayout(banner)
+        layout.setContentsMargins(14, 8, 14, 8)
+        layout.setSpacing(16)
+
+        patient = self.project_data.get("patient", {})
+        name = patient.get("name", "Minta páciens")
+        identifier = patient.get("patient_id", "NE-0001")
+
+        avatar = QLabel("KA")
+        avatar.setObjectName("patientAvatar")
+        layout.addWidget(avatar)
+
+        identity = QVBoxLayout()
+        identity.setSpacing(1)
+        title = QLabel(name)
+        title.setObjectName("patientName")
+        identity.addWidget(title)
+        subtitle = QLabel(f"{identifier}  ·  Aktív vizsgálat  ·  Neurokognitív szemkövetés")
+        subtitle.setObjectName("patientMeta")
+        identity.addWidget(subtitle)
+        layout.addLayout(identity)
+
+        for label, value in (
+            ("Születési dátum / kor", patient.get("birth_date", "—")),
+            ("Nem", patient.get("gender", "—")),
+            ("Vizsgálat", "Élő mérés"),
+        ):
+            block = QVBoxLayout()
+            block.setSpacing(1)
+            key = QLabel(label.upper())
+            key.setObjectName("patientFieldLabel")
+            val = QLabel(value)
+            val.setObjectName("patientFieldValue")
+            block.addWidget(key)
+            block.addWidget(val)
+            layout.addLayout(block)
+
+        layout.addStretch()
+        for label, value, object_name in (
+            ("Allergiák / mellékhatások", "Nincs rögzítve", "patientAlert"),
+            ("Figyelmeztetések", "Kamerakalibráció szükséges", "patientWarning"),
+        ):
+            alert = QFrame()
+            alert.setObjectName(object_name)
+            alert_layout = QVBoxLayout(alert)
+            alert_layout.setContentsMargins(9, 5, 9, 5)
+            alert_layout.setSpacing(1)
+            alert_layout.addWidget(QLabel(label.upper()))
+            alert_layout.addWidget(QLabel(value))
+            layout.addWidget(alert)
+        return banner
 
     def _make_menubar(self) -> QWidget:
         bar = QWidget()
         bar.setObjectName("appMenuBar")
-        bar.setFixedHeight(34)
+        bar.setFixedHeight(44)
 
         h = QHBoxLayout(bar)
-        h.setContentsMargins(8, 0, 8, 0)
+        h.setContentsMargins(16, 0, 16, 0)
         h.setSpacing(2)
 
-        title = QLabel("◎")
+        title = QLabel("NE")
         title.setObjectName("appLogo")
         title.setToolTip("Neural Eye Tracker")
         h.addWidget(title)
@@ -481,17 +549,21 @@ class MainWindow(QMainWindow):
             None,
             ("Kilépés", self.close),
         ))
+        self._add_menu(h, "Páciens", (
+            ("Páciens adatlapja", lambda: self._switch_page(0)),
+            ("Új vizsgálat", self._start),
+        ))
         self._add_menu(h, "Szerkesztés", (
             ("Nézet alaphelyzetbe állítása", self._reset_workspace),
             ("Munkamenet leállítása", self._stop),
         ))
-        self._add_menu(h, "Nézet", (
+        self._add_menu(h, "Klinikai", (
             ("Élő nézet", lambda: self._switch_page(0)),
             ("Riport nézet", lambda: self._switch_exp_view("report")),
             None,
             ("Teljes képernyő", self._toggle_fullscreen),
         ))
-        self._add_menu(h, "Ablak", (
+        self._add_menu(h, "Eszközök", (
             ("Kalibráció", lambda: self._switch_page(1)),
             ("Elemzés", lambda: self._switch_page(2)),
             ("Rendszer", lambda: self._switch_page(3)),
@@ -556,16 +628,16 @@ class MainWindow(QMainWindow):
     def _make_navigation_sidebar(self) -> QWidget:
         sidebar = QFrame()
         sidebar.setObjectName("navigationSidebar")
-        sidebar.setFixedWidth(72)
+        sidebar.setFixedWidth(96)
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(8, 12, 8, 12)
         layout.setSpacing(8)
         self.sidebar_buttons = []
         for index, (icon, label, tip) in enumerate((
-            ("◉", "Élő", "Élő mérés"),
-            ("✥", "Kalibr.", "Kalibráció"),
-            ("▣", "Elemzés", "Elemzés"),
-            ("⚙", "Rendsz.", "Rendszer és beállítások"),
+            ("◉", "Összegzés", "Élő mérés és páciens összegzés"),
+            ("✥", "Kalibráció", "Kalibráció"),
+            ("▣", "Leletek", "Riportok és statisztika"),
+            ("⚙", "Beállítások", "Rendszer és beállítások"),
         )):
             button = QToolButton()
             button.setObjectName("navigationButton")
@@ -584,24 +656,30 @@ class MainWindow(QMainWindow):
         bar = QWidget()
         bar.setObjectName("topTabs")
         layout = QHBoxLayout(bar)
-        layout.setContentsMargins(18, 0, 18, 0)
+        layout.setContentsMargins(20, 0, 20, 0)
         layout.setSpacing(2)
         self.nav_buttons = []
-        for index, (label, subtitle) in enumerate((
-            ("Élő", "Mérés és hőtérkép"),
-            ("Kalibráció", "Kalibrációs pontok"),
-            ("Elemzés", "Riportok és statisztika"),
-            ("Rendszer", "Kamera és beállítások"),
+        self._tab_page_indexes = []
+        for index, (label, page_index) in enumerate((
+            ("◉  Összegzés", 0),
+            ("⌁  Aktuális kezelés", 0),
+            ("◷  Kórtörténet", 2),
+            ("▤  Leletek", 2),
+            ("▣  Dokumentumok", 3),
+            ("€  Számlázás", 3),
         )):
             button = QToolButton()
             button.setObjectName("topTab")
-            button.setText(f"{label}\n{subtitle}")
+            button.setText(label)
             button.setCheckable(True)
             button.setChecked(index == 0)
-            button.setFixedHeight(48)
-            button.clicked.connect(lambda checked, i=index: self._switch_page(i))
+            button.setFixedHeight(46)
+            button.clicked.connect(
+                lambda checked, i=index, p=page_index: self._switch_page(p, i)
+            )
             layout.addWidget(button)
             self.nav_buttons.append(button)
+            self._tab_page_indexes.append(page_index)
         layout.addStretch()
         project_name = self.project_data.get("name", "Nincs projekt")
         patient = self.project_data.get("patient", {})
@@ -629,28 +707,44 @@ class MainWindow(QMainWindow):
     def _make_options_bar(self) -> QWidget:
         bar = QWidget()
         bar.setObjectName("optionsBar")
-        bar.setFixedHeight(32)
+        bar.setFixedHeight(40)
         layout = QHBoxLayout(bar)
-        layout.setContentsMargins(8, 0, 8, 0)
-        layout.setSpacing(8)
+        layout.setContentsMargins(16, 0, 16, 0)
+        layout.setSpacing(4)
 
         home = QToolButton()
         home.setObjectName("toolbarButton")
-        home.setText("⌂")
-        home.setToolTip("Élő nézet")
-        home.clicked.connect(lambda: self._switch_page(0))
+        home.setText("＋")
+        home.setToolTip("Új vizsgálat")
+        home.clicked.connect(self._start)
         layout.addWidget(home)
 
-        tool_label = QLabel("Munkaterület")
+        for label, tip, callback in (
+            ("▣", "Projekt mentése", self._save_project_as),
+            ("⎙", "Riport megnyitása", self._open_selected_report),
+            ("⌁", "Kalibráció", lambda: self._switch_page(1)),
+        ):
+            tool = QToolButton()
+            tool.setObjectName("toolbarButton")
+            tool.setText(label)
+            tool.setToolTip(tip)
+            tool.clicked.connect(callback)
+            layout.addWidget(tool)
+
+        tool_label = QLabel("Gyorskeresés")
         tool_label.setObjectName("toolbarLabel")
         layout.addWidget(tool_label)
+        search = QLineEdit()
+        search.setPlaceholderText("Páciens, vizsgálat vagy riport keresése…")
+        search.setFixedWidth(260)
+        search.setFixedHeight(28)
+        layout.addWidget(search)
 
         layout.addWidget(self._make_toolbar_combo("Forrás:", ("Kamera", "Videófájl")))
         layout.addWidget(self._make_toolbar_combo("Mód:", ("Képi ingerek", "Stroop teszt")))
-        layout.addWidget(self._make_toolbar_combo("Méret:", ("Illesztés", "100%", "75%")))
         layout.addStretch()
 
-        hint = QLabel("Kész • F11 teljes képernyő")
+        hint = QLabel("Kész")
         hint.setObjectName("toolbarHint")
         layout.addWidget(hint)
         return bar
@@ -776,10 +870,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(layers, stretch=1)
         return dock
 
-    def _switch_page(self, idx: int):
+    def _switch_page(self, idx: int, tab_index: int = None):
         self.main_stack.setCurrentIndex(idx)
+        selected_tab = idx if tab_index is None else tab_index
         for i, btn in enumerate(self.nav_buttons):
-            btn.setChecked(i == idx)
+            btn.setChecked(i == selected_tab)
         for i, btn in enumerate(getattr(self, "sidebar_buttons", [])):
             btn.setChecked(i == idx)
         # Analyze oldalra váltva frissítjük a riportlistát
@@ -945,14 +1040,48 @@ class MainWindow(QMainWindow):
         # BAL: mért csatornák
         left = QFrame()
         left.setObjectName("sidePanel")
-        left.setFixedWidth(240)
+        left.setFixedWidth(260)
         left_layout = QVBoxLayout(left)
-        left_layout.setContentsMargins(12, 12, 12, 12)
-        left_layout.setSpacing(10)
+        left_layout.setContentsMargins(14, 14, 14, 14)
+        left_layout.setSpacing(8)
 
-        left_title = QLabel("Mért csatornák")
+        left_title = QLabel("Aktuális vizit")
         left_title.setObjectName("sectionTitle")
         left_layout.addWidget(left_title)
+
+        visit_group = QGroupBox("Aktuális vizit")
+        visit_layout = QVBoxLayout(visit_group)
+        visit_layout.setContentsMargins(8, 12, 8, 8)
+        visit_layout.setSpacing(5)
+        visit_meta = QHBoxLayout()
+        self.visit_doctor_combo = QComboBox()
+        doctor_name = self._user_data.get("display_name") or self._user_data.get(
+            "username", "Kutató"
+        )
+        self.visit_doctor_combo.addItem(doctor_name)
+        self.visit_doctor_combo.setToolTip("Vizsgálatot végző orvos")
+        visit_meta.addWidget(self.visit_doctor_combo, stretch=1)
+        self.visit_type_combo = QComboBox()
+        self.visit_type_combo.addItems(["Kontrollvizsgálat", "Első vizsgálat", "Kutatási mérés"])
+        visit_meta.addWidget(self.visit_type_combo, stretch=1)
+        visit_layout.addLayout(visit_meta)
+        self.visit_notes = QTextEdit()
+        self.visit_notes.setPlaceholderText("Panaszok, státusz, diagnózis és terápia...")
+        self.visit_notes.setFixedHeight(72)
+        visit_layout.addWidget(self.visit_notes)
+        quick_actions = QHBoxLayout()
+        quick_actions.setSpacing(4)
+        for label in ("Előzmény", "Vizsgálat", "Recept"):
+            action = QToolButton()
+            action.setText(label)
+            action.setProperty("class", "iconBtn")
+            quick_actions.addWidget(action)
+        visit_layout.addLayout(quick_actions)
+        left_layout.addWidget(visit_group)
+
+        biometrics_title = QLabel("Élő biometria")
+        biometrics_title.setObjectName("sectionSubtitle")
+        left_layout.addWidget(biometrics_title)
 
         self.metric_conf = self._make_metric("Konfidencia", "0.00")
         self.metric_size = self._make_metric("Átmérő", "1.00")
@@ -963,9 +1092,18 @@ class MainWindow(QMainWindow):
         self.metric_radius = self._make_metric("Sugár", "0 px")
         self.metric_fps = self._make_metric("Mintavétel", "0 Hz")
 
-        for m in [self.metric_conf, self.metric_size, self.metric_az, self.metric_el,
-                  self.metric_pos_x, self.metric_pos_y, self.metric_radius, self.metric_fps]:
+        for m in [self.metric_conf, self.metric_fps, self.metric_size,
+                  self.metric_radius, self.metric_pos_x, self.metric_pos_y]:
             left_layout.addWidget(m)
+        session_group = QGroupBox("Munkamenet")
+        session_layout = QGridLayout(session_group)
+        session_layout.setContentsMargins(8, 12, 8, 8)
+        session_layout.setHorizontalSpacing(8)
+        session_layout.addWidget(QLabel("Próba"), 0, 0)
+        session_layout.addWidget(QLabel("0 / 0"), 0, 1)
+        session_layout.addWidget(QLabel("Fázis"), 1, 0)
+        session_layout.addWidget(QLabel("Készenlét"), 1, 1)
+        left_layout.addWidget(session_group)
         left_layout.addStretch()
         root.addWidget(left)
 
@@ -979,10 +1117,10 @@ class MainWindow(QMainWindow):
         header = QHBoxLayout()
         title_box = QVBoxLayout()
         title_box.setSpacing(2)
-        t1 = QLabel("Élő tekintetkövetés")
+        t1 = QLabel("Vizsgálati munkaterület")
         t1.setObjectName("sectionTitle")
         title_box.addWidget(t1)
-        t2 = QLabel("Valós idejű hőtérkép és pupillometriai telemetria")
+        t2 = QLabel("Valós idejű hőtérkép, pupillometria és vizsgálati jegyzet")
         t2.setObjectName("sectionSubtitle")
         title_box.addWidget(t2)
         header.addLayout(title_box)
@@ -1122,17 +1260,17 @@ class MainWindow(QMainWindow):
         # JOBB
         right = QFrame()
         right.setObjectName("rightPanel")
-        right.setFixedWidth(320)
+        right.setFixedWidth(340)
         right_layout = QVBoxLayout(right)
-        right_layout.setContentsMargins(12, 12, 12, 12)
-        right_layout.setSpacing(10)
+        right_layout.setContentsMargins(14, 14, 14, 14)
+        right_layout.setSpacing(8)
 
-        cam_title = QLabel("Szenzor kamera")
+        cam_title = QLabel("Segédpanel • kamera és előzmények")
         cam_title.setObjectName("sectionTitle")
         right_layout.addWidget(cam_title)
 
         self.camera_view = QLabel()
-        self.camera_view.setFixedSize(296, 222)
+        self.camera_view.setFixedSize(312, 138)
         self.camera_view.setStyleSheet(
             f"background-color: #000; "
             f"border: 1px solid {PALETTE['border']}; border-radius: 4px;"
@@ -2215,10 +2353,15 @@ class MainWindow(QMainWindow):
         self._status_left.setText(msg)
 
     def _update_clock(self):
+        current_time = datetime.now().strftime("%Y. %m. %d.  %H:%M:%S")
         if self.tracker.isRunning():
             mins = self._frames_received // (30 * 60)
             secs = (self._frames_received // 30) % 60
-            self._status_right.setText(f"Képkockák: {self._frames_received}  •  {mins:02d}:{secs:02d}")
+            self._status_right.setText(
+                f"{current_time}  •  Képkockák: {self._frames_received}  •  {mins:02d}:{secs:02d}"
+            )
+        else:
+            self._status_right.setText(current_time)
 
     def _add_log(self, msg: str):
         ts = time.strftime("%H:%M:%S")
@@ -2264,11 +2407,20 @@ class MainWindow(QMainWindow):
         reports_dir = str(REPORTS_DIR)
         if not os.path.isdir(reports_dir):
             return
+        report_files = {}
         for fname in os.listdir(reports_dir):
-            if fname.startswith("report_") and fname.endswith(".txt"):
+                if not fname.startswith("report_"):
+                    continue
+                extension = os.path.splitext(fname)[1].lower()
+                if extension not in (".html", ".json"):
+                    continue
+                base_name = os.path.splitext(fname)[0]
                 path = os.path.join(reports_dir, fname)
                 mtime = os.path.getmtime(path)
-                self._reports_list.append((mtime, path, fname))
+                # Prefer the human-readable clinical document over its JSON source.
+                if base_name not in report_files or extension == ".html":
+                    report_files[base_name] = (mtime, path, fname)
+        self._reports_list.extend(report_files.values())
         self._reports_list.sort(reverse=True)
 
         if hasattr(self, "history_list"):

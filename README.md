@@ -15,12 +15,30 @@ Professional pupil and gaze tracking application for research and clinical workf
 ## Project layout
 
 - `main.py` - application entry point
+- `web/` - local React/Vite clinical workspace viewer
 - `config/` - paths, settings and release metadata
 - `core/` - tracking, analysis, projects and updates
 - `ui/` - PyQt5 windows and widgets
 - `resources/` - read-only application resources
 - `stimuli/` - read-only stimulus resources
 - `packaging/` - PyInstaller and Inno Setup build files
+
+## Local React clinical workspace
+
+The clinical workspace preview runs locally through a React/Vite development
+server. It preserves the visual and interactive behavior of
+`neural_eye_tracker_klinikai_munkater_let.html` while providing a React entry
+point for later component-by-component migration.
+
+```powershell
+Set-Location .\web
+npm install
+npm run dev
+```
+
+Open `http://127.0.0.1:5173/` in a browser. The legacy clinical workspace is
+served by the Vite middleware from the repository root, so it does not need to
+be copied or duplicated.
 
 ## Runtime data
 

@@ -1,9 +1,10 @@
 # core/report_generator.py
-# Riport generátor – TXT (emberi olvasás) + JSON (Analyze fül) + CSV (táblázat)
+# Riport generátor – HTML klinikai riport + JSON (Analyze) + CSV
 
 import os
 import json
 import csv
+import html
 from datetime import datetime
 from typing import Optional, Any, Dict, List
 
@@ -18,13 +19,13 @@ class ReportGenerator:
         os.makedirs(output_dir, exist_ok=True)
 
     # ==========================================================
-    # FŐ BELÉPÉSI PONT – TXT + JSON + CSV
+    # FŐ BELÉPÉSI PONT – HTML + JSON
     # ==========================================================
     def save_report(self, result: ExperimentResult,
                     filename: Optional[str] = None) -> str:
         """
         Elmenti a riportot:
-          - TXT  (emberi olvasásra)
+          - HTML (nyomtatható, strukturált klinikai dokumentum)
           - JSON (Analyze fülhöz, gépi feldolgozáshoz)
         Visszatérés: a JSON fájl útvonala (ezt használja az Analyze).
         """
@@ -34,13 +35,13 @@ class ReportGenerator:
         else:
             base = os.path.splitext(filename)[0]
 
-        # TXT
+        # HTML – a felhasználó számára megnyitott klinikai riport
         try:
-            txt_path = os.path.join(self.output_dir, f"{base}.txt")
-            with open(txt_path, "w", encoding="utf-8") as f:
-                f.write(self.generate_text_report(result))
+            html_path = os.path.join(self.output_dir, f"{base}.html")
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(self.generate_html_report(result))
         except Exception as e:
-            print(f"[REPORTER] TXT hiba: {e}")
+            print(f"[REPORTER] HTML hiba: {e}")
 
         # JSON
         json_path = os.path.join(self.output_dir, f"{base}.json")
@@ -52,6 +53,145 @@ class ReportGenerator:
             print(f"[REPORTER] JSON hiba: {e}")
 
         return json_path
+
+    def generate_html_report(self, result: ExperimentResult) -> str:
+        """Nyomtatható, klinikai áttekintő riport készítése HTML formátumban."""
+        data = self._build_json(result)
+        subject_id = html.escape(str(data.get("subject_id") or "N/A"))
+        note = html.escape(str(data.get("subject_note") or "Nincs megadva"))
+        generated_at = datetime.now().strftime("%Y. %m. %d. %H:%M")
+        start = self._fmt_time(getattr(result, "session_start", None))
+        end = self._fmt_time(getattr(result, "session_end", None))
+        duration = self._duration(result)
+        mode = html.escape(str(data.get("mode") or "images"))
+        trial_count = len(data.get("trials", []))
+
+        categories = data.get("arousal_by_category", {})
+        std_by_category = data.get("arousal_std_by_category", {})
+        fixation_by_category = data.get("fixation_time_by_category", {})
+        reaction_by_category = data.get("reaction_time_by_category", {})
+        category_rows = []
+        for category in sorted(categories):
+            category_rows.append(
+                "<tr>"
+                f"<td>{html.escape(str(category))}</td>"
+                f"<td>{self._metric(categories.get(category))}</td>"
+                f"<td>{self._metric(std_by_category.get(category))}</td>"
+                f"<td>{self._metric(fixation_by_category.get(category), 0)}</td>"
+                f"<td>{self._metric(reaction_by_category.get(category), 0)}</td>"
+                "</tr>"
+            )
+        if not category_rows:
+            category_rows.append(
+                '<tr><td colspan="5" class="empty">Nincs kategóriaadat.</td></tr>'
+            )
+
+        interpretation = html.escape(self._interpret(result)).replace("\n", "<br>")
+        negative = self._metric(data.get("negative_arousal"))
+        positive = self._metric(data.get("positive_arousal"))
+        balance = self._metric(data.get("emotional_balance"))
+
+        return f"""<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<title>Neural Eye Lab – Klinikai vizsgálati riport</title>
+<style>
+  :root {{ --blue:#0b6bcb; --ink:#172033; --muted:#667085; --line:#dfe5ec;
+           --soft:#f5f8fb; --green:#0f8a3c; --amber:#b45309; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; color:var(--ink); background:#eef2f6;
+          font:13px/1.5 "Segoe UI", Arial, sans-serif; }}
+  .sheet {{ width:210mm; min-height:297mm; margin:18px auto; padding:18mm 17mm;
+            background:#fff; box-shadow:0 2px 12px rgba(15,23,42,.12); }}
+  header {{ display:flex; justify-content:space-between; gap:20px;
+            padding-bottom:16px; border-bottom:3px solid var(--blue); }}
+  .brand {{ color:var(--blue); font-size:22px; font-weight:800; letter-spacing:.4px; }}
+  .subtitle {{ color:var(--muted); margin-top:3px; }}
+  .report-meta {{ min-width:190px; text-align:right; color:var(--muted); font-size:11px; }}
+  h2 {{ margin:22px 0 9px; padding-bottom:6px; border-bottom:1px solid var(--line);
+        color:var(--blue); font-size:15px; }}
+  h3 {{ margin:0 0 8px; font-size:12px; }}
+  .patient {{ display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:10px;
+              margin-top:16px; padding:12px; border:1px solid var(--line);
+              border-radius:7px; background:var(--soft); }}
+  .label {{ color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.5px; }}
+  .value {{ margin-top:2px; font-weight:700; }}
+  .grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }}
+  .metric {{ padding:10px; border:1px solid var(--line); border-radius:6px; background:#fff; }}
+  .metric .value {{ font-size:16px; }}
+  table {{ width:100%; border-collapse:collapse; }}
+  th, td {{ padding:8px 9px; border-bottom:1px solid var(--line); text-align:left; }}
+  th {{ color:var(--muted); background:var(--soft); font-size:10px; text-transform:uppercase; }}
+  .interpretation {{ padding:12px; border-left:4px solid var(--blue); background:var(--soft); }}
+  .notice {{ margin-top:22px; padding:10px 12px; border:1px solid #f0d69a;
+             border-radius:6px; color:#7a4d00; background:#fff8e6; font-size:11px; }}
+  .signatures {{ display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:40px; }}
+  .signature {{ padding-top:22px; border-top:1px solid #8793a1; color:var(--muted); font-size:11px; }}
+  .footer {{ margin-top:28px; padding-top:10px; border-top:1px solid var(--line);
+             color:var(--muted); font-size:10px; }}
+  .empty {{ color:var(--muted); text-align:center; }}
+  @media print {{ body {{ background:#fff; }} .sheet {{ width:auto; min-height:0;
+                   margin:0; padding:0; box-shadow:none; }} }}
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header>
+    <div><div class="brand">NEURAL EYE LAB</div>
+      <div class="subtitle">Pupillometriai és tekintetkövetési klinikai vizsgálati riport</div></div>
+    <div class="report-meta">Riport készítve<br><strong>{generated_at}</strong><br>Dokumentum: {subject_id}</div>
+  </header>
+
+  <section class="patient">
+    <div><div class="label">Páciens azonosító</div><div class="value">{subject_id}</div></div>
+    <div><div class="label">Vizsgálati mód</div><div class="value">{mode}</div></div>
+    <div><div class="label">Megjegyzés</div><div class="value">{note}</div></div>
+  </section>
+
+  <h2>1. Vizsgálati összefoglaló</h2>
+  <div class="grid">
+    <div class="metric"><div class="label">Kezdés</div><div class="value">{start}</div></div>
+    <div class="metric"><div class="label">Befejezés</div><div class="value">{end}</div></div>
+    <div class="metric"><div class="label">Időtartam</div><div class="value">{duration}</div></div>
+    <div class="metric"><div class="label">Próbák száma</div><div class="value">{trial_count}</div></div>
+  </div>
+
+  <h2>2. Mérési minőség és pupillometriai alapértékek</h2>
+  <div class="grid">
+    <div class="metric"><div class="label">Baseline pupilla</div><div class="value">{self._metric(data.get("baseline_pupil"))}</div></div>
+    <div class="metric"><div class="label">Átlagos pupilla</div><div class="value">{self._metric(data.get("mean_pupil"))}</div></div>
+    <div class="metric"><div class="label">Pislogások</div><div class="value">{data.get("total_blinks", 0)}</div></div>
+    <div class="metric"><div class="label">Mérési státusz</div><div class="value" style="color:var(--green)">Értékelhető</div></div>
+  </div>
+
+  <h2>3. Kategóriaeredmények</h2>
+  <table><thead><tr><th>Kategória</th><th>Arousal</th><th>Szórás</th><th>Fixáció (ms)</th><th>Reakció (ms)</th></tr></thead>
+  <tbody>{"".join(category_rows)}</tbody></table>
+
+  <h2>4. Érzelmi reakció markerek</h2>
+  <div class="grid">
+    <div class="metric"><div class="label">Negatív arousal</div><div class="value">{negative}</div></div>
+    <div class="metric"><div class="label">Pozitív arousal</div><div class="value">{positive}</div></div>
+    <div class="metric"><div class="label">Érzelmi egyensúly</div><div class="value">{balance}</div></div>
+    <div class="metric"><div class="label">Kiértékelés</div><div class="value">Automatikus</div></div>
+  </div>
+
+  <h2>5. Szakmai értelmezés</h2>
+  <div class="interpretation">{interpretation}</div>
+
+  <div class="notice"><strong>Fontos klinikai megjegyzés:</strong>
+    Ez a dokumentum automatikus pupillometriai és tekintetkövetési kiértékelést tartalmaz.
+    Nem helyettesít szakorvosi vizsgálatot, diagnózist vagy kezelési döntést.</div>
+
+  <div class="signatures">
+    <div class="signature">Kiértékelő szakember aláírása / dátum</div>
+    <div class="signature">Szakorvosi ellenőrzés / dátum</div>
+  </div>
+  <div class="footer">Neural Eye Tracker · Klinikai mérőrendszer · Generált dokumentum, verzió 1.0</div>
+</main>
+</body>
+</html>"""
 
     # ==========================================================
     # TXT – EMBERI OLVASÁSRA
@@ -301,6 +441,27 @@ class ReportGenerator:
     # ==========================================================
     # SEGÉDEK
     # ==========================================================
+    @staticmethod
+    def _metric(value, decimals: int = 4) -> str:
+        if value is None or value == "":
+            return "N/A"
+        try:
+            number = float(value)
+            if number != number or number in (float("inf"), float("-inf")):
+                return "N/A"
+            if decimals == 0:
+                return f"{number:.0f}"
+            return f"{number:.{decimals}f}"
+        except (TypeError, ValueError):
+            return html.escape(str(value))
+
+    def _duration(self, result: ExperimentResult) -> str:
+        start = self._f(getattr(result, "session_start", None))
+        end = self._f(getattr(result, "session_end", None))
+        if start is None or end is None or end < start:
+            return "N/A"
+        return f"{end - start:.1f} s"
+
     @staticmethod
     def _fmt_time(t: float) -> str:
         if not t or t <= 0:

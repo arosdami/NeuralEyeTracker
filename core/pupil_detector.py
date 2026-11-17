@@ -17,6 +17,22 @@ import numpy as np
 from collections import deque
 
 from core.eye_segmenter import EyeSegmenter
+from config.settings import (
+    MIN_PUPIL_AREA, MAX_PUPIL_AREA, MIN_CIRCULARITY,
+    MIN_ASPECT_RATIO, MAX_MEAN_INTENSITY, DETECTOR_MIN_RADIUS,
+    DETECTOR_MIN_CONTRAST, DETECTOR_MIN_SCORE,
+    DETECTOR_EYE_REGION_TOP, DETECTOR_EYE_REGION_BOTTOM,
+    DETECTOR_CLAHE_CLIP_LIMIT, DETECTOR_CLAHE_GRID_SIZE,
+    DETECTOR_BILATERAL_DIAMETER, DETECTOR_BILATERAL_SIGMA_COLOR,
+    DETECTOR_BILATERAL_SIGMA_SPACE, DETECTOR_GAUSSIAN_KERNEL,
+    DETECTOR_GAUSSIAN_SIGMA, DETECTOR_ADAPTIVE_BLOCK_SIZE,
+    DETECTOR_ADAPTIVE_C, DETECTOR_FIXED_THRESHOLD,
+    DETECTOR_FALLBACK_THRESHOLD, DETECTOR_MORPH_OPEN_KERNEL,
+    DETECTOR_MORPH_CLOSE_KERNEL, DETECTOR_MORPH_OPEN_ITERATIONS,
+    DETECTOR_MORPH_CLOSE_ITERATIONS, DETECTOR_DETECTION_WEIGHTS,
+    DETECTOR_SIZE_REFERENCE, DETECTOR_SIZE_TOLERANCE,
+    DETECTOR_POSITION_SCALE, DETECTOR_CONTRAST_SCALE,
+)
 
 
 class PupilDetector:
@@ -32,16 +48,14 @@ class PupilDetector:
     """
 
     # ---- Geometriai szűrési paraméterek ----
-    MIN_PUPIL_AREA = 40
-    MAX_PUPIL_AREA = 4000
-    MIN_RADIUS = 3.0
-    MIN_CIRCULARITY = 0.55
-    MIN_ASPECT_RATIO = 0.55
-    MAX_MEAN_INTENSITY = 75
-    MIN_SCORE = 0.30
-
-    # ---- Kontraszt-küszöb ----
-    MIN_CONTRAST = 12.0
+    MIN_PUPIL_AREA = MIN_PUPIL_AREA
+    MAX_PUPIL_AREA = MAX_PUPIL_AREA
+    MIN_RADIUS = DETECTOR_MIN_RADIUS
+    MIN_CIRCULARITY = MIN_CIRCULARITY
+    MIN_ASPECT_RATIO = MIN_ASPECT_RATIO
+    MAX_MEAN_INTENSITY = MAX_MEAN_INTENSITY
+    MIN_SCORE = DETECTOR_MIN_SCORE
+    MIN_CONTRAST = DETECTOR_MIN_CONTRAST
 
     def __init__(self):
         self.roi = None
@@ -53,11 +67,14 @@ class PupilDetector:
         self.BLINK_THRESHOLD = 3
 
         # CLAHE
-        self.clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        self.clahe = cv2.createCLAHE(
+            clipLimit=DETECTOR_CLAHE_CLIP_LIMIT,
+            tileGridSize=DETECTOR_CLAHE_GRID_SIZE,
+        )
 
         # Szemrégió
-        self.eye_region_top = 0.08
-        self.eye_region_bottom = 0.75
+        self.eye_region_top = DETECTOR_EYE_REGION_TOP
+        self.eye_region_bottom = DETECTOR_EYE_REGION_BOTTOM
 
         # ---- SZEM-SZEGMENTÁLÓ ----
         self.eye_segmenter = EyeSegmenter()
@@ -261,19 +278,25 @@ class PupilDetector:
         # ---- Bilaterális szűrő ----
         try:
             filtered = cv2.bilateralFilter(
-                enhanced, d=5, sigmaColor=50, sigmaSpace=50
+                enhanced,                 d=DETECTOR_BILATERAL_DIAMETER,
+                sigmaColor=DETECTOR_BILATERAL_SIGMA_COLOR,
+                sigmaSpace=DETECTOR_BILATERAL_SIGMA_SPACE,
             )
         except Exception:
             filtered = enhanced
 
         # ---- Gauss ----
-        blurred = cv2.GaussianBlur(filtered, (5, 5), 1.2)
+        blurred = cv2.GaussianBlur(
+            filtered, DETECTOR_GAUSSIAN_KERNEL, DETECTOR_GAUSSIAN_SIGMA
+        )
 
         # ---- Küszöbök ----
         try:
             th_adaptive = cv2.adaptiveThreshold(
                 blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                cv2.THRESH_BINARY_INV, 15, 3
+                cv2.THRESH_BINARY_INV,
+                DETECTOR_ADAPTIVE_BLOCK_SIZE,
+                DETECTOR_ADAPTIVE_C,
             )
         except Exception:
             th_adaptive = np.zeros_like(blurred)
@@ -286,7 +309,9 @@ class PupilDetector:
         except Exception:
             th_otsu = np.zeros_like(blurred)
 
-        _, th_fixed = cv2.threshold(blurred, 45, 255, cv2.THRESH_BINARY_INV)
+        _, th_fixed = cv2.threshold(
+            blurred, DETECTOR_FIXED_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+        )
 
         # ---- Kombinálás ----
         th_combined = cv2.bitwise_and(th_adaptive, th_fixed)
@@ -295,14 +320,19 @@ class PupilDetector:
         )
 
         # ---- Morfológiai tisztítás ----
-        k3 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        k5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        k3 = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, DETECTOR_MORPH_OPEN_KERNEL
+        )
+        k5 = cv2.getStructuringElement(
+            cv2.MORPH_ELLIPSE, DETECTOR_MORPH_CLOSE_KERNEL
+        )
 
         th_clean = cv2.morphologyEx(
-            th_combined, cv2.MORPH_OPEN, k3, iterations=1
+            th_combined,             cv2.MORPH_OPEN, k3, iterations=DETECTOR_MORPH_OPEN_ITERATIONS
         )
         th_clean = cv2.morphologyEx(
-            th_clean, cv2.MORPH_CLOSE, k5, iterations=2
+            th_clean,             cv2.MORPH_CLOSE, k5,
+            iterations=DETECTOR_MORPH_CLOSE_ITERATIONS
         )
 
         # ---- Kontúrok ----
@@ -315,7 +345,8 @@ class PupilDetector:
 
         if len(contours) == 0:
             _, th_backup = cv2.threshold(
-                blurred, 60, 255, cv2.THRESH_BINARY_INV
+                blurred, DETECTOR_FALLBACK_THRESHOLD, 255,
+                cv2.THRESH_BINARY_INV
             )
             th_backup = cv2.morphologyEx(
                 th_backup, cv2.MORPH_CLOSE, k5, iterations=2
@@ -392,18 +423,27 @@ class PupilDetector:
 
             darkness = 1.0 - mean_val / 255.0
             dist = math.hypot(x - ref_x, y - ref_y)
-            position = max(0.0, 1.0 - dist / 200.0)
-            size_score = 1.0 - abs(area - 500) / 800.0
+            position = max(
+                0.0, 1.0 - dist / DETECTOR_POSITION_SCALE
+            )
+            size_score = (
+                1.0 - abs(area - DETECTOR_SIZE_REFERENCE)
+                / DETECTOR_SIZE_TOLERANCE
+            )
             size_score = max(0.0, size_score)
-            contrast_score = min(1.0, contrast / 50.0)
+            contrast_score = min(
+                1.0, contrast / DETECTOR_CONTRAST_SCALE
+            )
 
-            score = (
-                darkness * 0.30 +
-                circ * 0.15 +
-                aspect * 0.10 +
-                position * 0.25 +
-                contrast_score * 0.15 +
-                size_score * 0.05
+            score = sum(
+                weight * quality
+                for weight, quality in zip(
+                    DETECTOR_DETECTION_WEIGHTS,
+                    (
+                        darkness, circ, aspect, position,
+                        contrast_score, size_score,
+                    ),
+                )
             )
 
             if score > best_score and score > self.MIN_SCORE:

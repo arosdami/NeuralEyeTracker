@@ -17,7 +17,13 @@ from sklearn.exceptions import ConvergenceWarning
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 from config.settings import (
-    AZIMUTH_RANGE, ELEVATION_RANGE, MIN_TRAINING_SAMPLES
+    AZIMUTH_RANGE, ELEVATION_RANGE, MIN_TRAINING_SAMPLES,
+    MODEL_HIDDEN_LAYERS, MODEL_LEARNING_RATE, MODEL_MAX_ITERATIONS,
+    MODEL_VALIDATION_FRACTION, MODEL_EARLY_STOPPING_ROUNDS,
+    MODEL_L2_REGULARIZATION, MODEL_TOLERANCE, BASELINE_SAMPLE_COUNT,
+    RELATIVE_POSITION_GAIN, PREDICTION_HISTORY_LENGTH,
+    OUTLIER_MIN_SAMPLES, OUTLIER_QUANTILES, OUTLIER_IQR_FACTOR,
+    OUTLIER_MIN_RETAIN_RATIO,
 )
 
 
@@ -47,9 +53,9 @@ class NeuralGazeModel:
             config = {}
 
         # Nagyobb háló a nemlineáris leképezéshez
-        hidden_layers = config.get("hidden_layers", (256, 128, 64, 32))
-        learning_rate = config.get("learning_rate", 0.0008)
-        max_iter = config.get("max_iter", 1500)
+        hidden_layers = config.get("hidden_layers", MODEL_HIDDEN_LAYERS)
+        learning_rate = config.get("learning_rate", MODEL_LEARNING_RATE)
+        max_iter = config.get("max_iter", MODEL_MAX_ITERATIONS)
 
         self.model = MLPRegressor(
             hidden_layer_sizes=hidden_layers,
@@ -61,12 +67,12 @@ class NeuralGazeModel:
             warm_start=False,
             random_state=42,
             early_stopping=True,
-            validation_fraction=0.15,
-            n_iter_no_change=30,
-            alpha=1e-4,
+            validation_fraction=MODEL_VALIDATION_FRACTION,
+            n_iter_no_change=MODEL_EARLY_STOPPING_ROUNDS,
+            alpha=MODEL_L2_REGULARIZATION,
             batch_size="auto",
             shuffle=True,
-            tol=1e-7,
+            tol=MODEL_TOLERANCE,
             verbose=False,
         )
 
@@ -81,7 +87,7 @@ class NeuralGazeModel:
         self._baseline_x: Optional[float] = None  # normalizált
         self._baseline_y: Optional[float] = None
         self._baseline_samples: List[Tuple[float, float]] = []
-        self.BASELINE_COUNT: int = 10  # ennyi mintából számoljuk a baseline-t
+        self.BASELINE_COUNT: int = BASELINE_SAMPLE_COUNT
 
         # Feature state
         self._prev_pos: Optional[Tuple[float, float]] = None
@@ -89,7 +95,7 @@ class NeuralGazeModel:
 
         # Predikciós hiszterézis (kevesebb = gyorsabb)
         self._pred_history: List[Tuple[float, float]] = []
-        self._pred_history_maxlen: int = 3
+        self._pred_history_maxlen: int = PREDICTION_HISTORY_LENGTH
 
         # Metaadatok
         self.train_score: float = 0.0
@@ -164,8 +170,12 @@ class NeuralGazeModel:
 
         # Skálázás: a kis eltéréseket felnagyítjuk (10x)
         # Ez azért kell, mert a pupilla alig mozdul a képen
-        dx_norm = float(np.clip(dx_norm * 10.0, -1.0, 1.0))
-        dy_norm = float(np.clip(dy_norm * 10.0, -1.0, 1.0))
+        dx_norm = float(np.clip(
+            dx_norm * RELATIVE_POSITION_GAIN, -1.0, 1.0
+        ))
+        dy_norm = float(np.clip(
+            dy_norm * RELATIVE_POSITION_GAIN, -1.0, 1.0
+        ))
 
         major_norm = float(np.clip(major / 80.0, 0.05, 2.0))
         minor_norm = float(np.clip(minor / 80.0, 0.05, 2.0))
@@ -273,23 +283,24 @@ class NeuralGazeModel:
         self, X: np.ndarray, Y: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
         """IQR-alapú outlier szűrés."""
-        if len(X) < 10:
+        if len(X) < OUTLIER_MIN_SAMPLES:
             return X, Y
 
         try:
             # Csak az első 2 feature-re (dx_norm, dy_norm)
-            q1 = np.percentile(X[:, 0:2], 5, axis=0)
-            q3 = np.percentile(X[:, 0:2], 95, axis=0)
+            low_q, high_q = OUTLIER_QUANTILES
+            q1 = np.percentile(X[:, 0:2], low_q, axis=0)
+            q3 = np.percentile(X[:, 0:2], high_q, axis=0)
             iqr = q3 - q1
 
-            lower = q1 - 1.5 * iqr
-            upper = q3 + 1.5 * iqr
+            lower = q1 - OUTLIER_IQR_FACTOR * iqr
+            upper = q3 + OUTLIER_IQR_FACTOR * iqr
 
             mask = np.all(
                 (X[:, 0:2] >= lower) & (X[:, 0:2] <= upper), axis=1
             )
 
-            if mask.sum() < len(X) * 0.7:
+            if mask.sum() < len(X) * OUTLIER_MIN_RETAIN_RATIO:
                 return X, Y
 
             return X[mask], Y[mask]

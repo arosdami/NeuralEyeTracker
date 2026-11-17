@@ -3,48 +3,48 @@
 # Tobii Pro Lab Analyze stílus
 
 # ==========================================================
-# PALETTE – Tobii Pro Lab Analyze (sötét, professzionális)
+# PALETTE – Windows 11 Fluent clinical workstation
 # ==========================================================
 PALETTE = {
     # ---- HÁTTÉR ----
-    "bg_primary":       "#1e1e22",   # Fő háttér (sötét grafit)
-    "bg_secondary":     "#24242a",   # Panelek
-    "bg_card":          "#2a2a30",   # Kártyák
-    "bg_elevated":      "#33333b",   # Hover
-    "bg_input":         "#1a1a1e",   # Beviteli mezők
-    "bg_panel":         "#26262c",   # Oldalsó panelek
-    "bg_toolbar":       "#2a2a30",   # Toolbar
-    "bg_darkest":       "#151517",   # Legmélyebb
+    "bg_primary":       "#f6f8fb",   # Fő háttér
+    "bg_secondary":     "#ffffff",   # Panelek
+    "bg_card":          "#ffffff",   # Kártyák
+    "bg_elevated":      "#f0f3f8",   # Hover
+    "bg_input":         "#ffffff",   # Beviteli mezők
+    "bg_panel":         "#fafbfd",   # Oldalsó panelek
+    "bg_toolbar":       "#ffffff",   # Toolbar
+    "bg_darkest":       "#f3f3f3",   # Menüsáv
 
     # ---- SZEGÉLYEK ----
-    "border":           "#33333b",
-    "border_light":     "#42424a",
-    "border_strong":    "#52525c",
-    "border_glow":      "#0e8cf0",
+    "border":           "#e4e9f0",
+    "border_light":     "#cfd7e3",
+    "border_strong":    "#b7c3d2",
+    "border_glow":      "#0b6bcb",
 
     # ---- AKCENT (Tobii kék) ----
-    "accent_primary":   "#0e8cf0",
-    "accent_secondary": "#3ba0f5",
-    "accent_hover":     "#2a9bf5",
-    "accent_success":   "#4ec976",
-    "accent_warning":   "#f0a838",
-    "accent_danger":    "#ef4a5a",
-    "accent_cyan":      "#20c4d8",
-    "accent_purple":    "#a06cf0",
-    "accent_pink":      "#ef4a8c",
+    "accent_primary":   "#0b6bcb",
+    "accent_secondary": "#3a95f0",
+    "accent_hover":     "#0958a8",
+    "accent_success":   "#0f8a3c",
+    "accent_warning":   "#b45309",
+    "accent_danger":    "#c42b1c",
+    "accent_cyan":      "#0078d4",
+    "accent_purple":    "#6b4bb1",
+    "accent_pink":      "#b4009e",
 
     # ---- SZÖVEG ----
-    "text_primary":     "#e8e8ee",
-    "text_secondary":   "#a8a8b4",
-    "text_muted":       "#6a6a78",
+    "text_primary":     "#0f172a",
+    "text_secondary":   "#334155",
+    "text_muted":       "#64748b",
     "text_inverse":     "#ffffff",
-    "text_sidebar":     "#c8ccd1",
-    "text_sidebar_active":"#ffffff",
+    "text_sidebar":     "#334155",
+    "text_sidebar_active":"#0f172a",
 
     # ---- METRIKÁK ----
-    "metric_bg":        "#24242a",
-    "metric_value":     "#e8e8ee",
-    "metric_label":     "#6a6a78",
+    "metric_bg":        "#fafbfd",
+    "metric_value":     "#0f172a",
+    "metric_label":     "#94a3b8",
 
     # ---- KATEGÓRIA SZÍNEK (Tobii Targets) ----
     "cat_dog":          "#f0a838",   # narancs
@@ -57,7 +57,7 @@ PALETTE = {
 
 # Visszafelé kompatibilis aliasok
 PALETTE["bg_deep"]      = PALETTE["bg_primary"]
-PALETTE["bg_panel"]     = PALETTE["bg_secondary"]
+PALETTE["bg_panel"]     = "#fafbfd"
 PALETTE["bg_panel_alt"] = PALETTE["bg_card"]
 PALETTE["bg_surface"]   = PALETTE["bg_secondary"]
 PALETTE["accent_blue"]  = PALETTE["accent_primary"]
@@ -69,7 +69,7 @@ PALETTE["accent_red"]   = PALETTE["accent_danger"]
 # ==========================================================
 # TIPOGRAFIA
 # ==========================================================
-FONT_FAMILY = "'Segoe UI', -apple-system, 'Helvetica Neue', Arial, sans-serif"
+FONT_FAMILY = "'Inter', 'Segoe UI Variable', 'Segoe UI', -apple-system, Arial, sans-serif"
 FONT_MONO   = "'Consolas', 'Monaco', 'Courier New', monospace"
 
 FONT_SIZE_XS = 10
@@ -102,6 +102,31 @@ MIN_CIRCULARITY = 0.65
 MIN_ASPECT_RATIO = 0.55
 MAX_MEAN_INTENSITY = 60
 MAX_POSITION_JUMP = 120
+DETECTOR_MIN_RADIUS = 3.0
+DETECTOR_MIN_CONTRAST = 12.0
+DETECTOR_MIN_SCORE = 0.30
+DETECTOR_EYE_REGION_TOP = 0.08
+DETECTOR_EYE_REGION_BOTTOM = 0.75
+DETECTOR_CLAHE_CLIP_LIMIT = 2.5
+DETECTOR_CLAHE_GRID_SIZE = (8, 8)
+DETECTOR_BILATERAL_DIAMETER = 5
+DETECTOR_BILATERAL_SIGMA_COLOR = 50
+DETECTOR_BILATERAL_SIGMA_SPACE = 50
+DETECTOR_GAUSSIAN_KERNEL = (5, 5)
+DETECTOR_GAUSSIAN_SIGMA = 1.2
+DETECTOR_ADAPTIVE_BLOCK_SIZE = 15
+DETECTOR_ADAPTIVE_C = 3
+DETECTOR_FIXED_THRESHOLD = 45
+DETECTOR_FALLBACK_THRESHOLD = 60
+DETECTOR_MORPH_OPEN_KERNEL = (3, 3)
+DETECTOR_MORPH_CLOSE_KERNEL = (5, 5)
+DETECTOR_MORPH_OPEN_ITERATIONS = 1
+DETECTOR_MORPH_CLOSE_ITERATIONS = 2
+DETECTOR_DETECTION_WEIGHTS = (0.30, 0.15, 0.10, 0.25, 0.15, 0.05)
+DETECTOR_SIZE_REFERENCE = 500
+DETECTOR_SIZE_TOLERANCE = 800
+DETECTOR_POSITION_SCALE = 200
+DETECTOR_CONTRAST_SCALE = 50
 
 
 # ==========================================================
@@ -128,6 +153,20 @@ FEATURE_COUNT = 13
 AZIMUTH_RANGE = (-45.0, 45.0)
 ELEVATION_RANGE = (-35.0, 35.0)
 MIN_TRAINING_SAMPLES = 30
+MODEL_HIDDEN_LAYERS = (256, 128, 64, 32)
+MODEL_LEARNING_RATE = 0.0008
+MODEL_MAX_ITERATIONS = 1500
+MODEL_VALIDATION_FRACTION = 0.15
+MODEL_EARLY_STOPPING_ROUNDS = 30
+MODEL_L2_REGULARIZATION = 1e-4
+MODEL_TOLERANCE = 1e-7
+BASELINE_SAMPLE_COUNT = 10
+RELATIVE_POSITION_GAIN = 10.0
+PREDICTION_HISTORY_LENGTH = 3
+OUTLIER_MIN_SAMPLES = 10
+OUTLIER_QUANTILES = (5, 95)
+OUTLIER_IQR_FACTOR = 1.5
+OUTLIER_MIN_RETAIN_RATIO = 0.7
 
 
 # ==========================================================
@@ -774,4 +813,380 @@ def build_stylesheet() -> str:
     QSplitter::handle {{ background-color: {p['border']}; }}
     QSplitter::handle:horizontal {{ width: 1px; }}
     QSplitter::handle:vertical {{ height: 1px; }}
+
+    /* ===== FLUENT CLINICAL OVERRIDES ===== */
+    QMainWindow, QWidget {{ font-family: "Segoe UI Variable", "Segoe UI", sans-serif; }}
+    QWidget#appMenuBar, QWidget#topTabs, QWidget#optionsBar {{
+        background-color: #ffffff;
+        border-color: #e5e5e5;
+    }}
+    QToolButton#appMenuItem, QToolButton#appMenuBtn, QToolButton#topTab {{
+        color: #424242;
+        border-radius: 4px;
+    }}
+    QToolButton#appMenuItem {{
+        padding: 4px 8px;
+        font-size: 11px;
+    }}
+    QToolButton#appMenuItem:hover, QToolButton#appMenuBtn:hover,
+    QToolButton#topTab:hover {{ background-color: #f3f3f3; color: #1f1f1f; }}
+    QToolButton#topTab:checked {{
+        background-color: #e8f1fb;
+        color: #0067c0;
+        border-bottom-color: #0067c0;
+    }}
+    QLabel#appLogo {{
+        background-color: #e8f1fb;
+        color: #0067c0;
+        border-color: #b9d5ee;
+        border-radius: 5px;
+    }}
+    QFrame#navigationSidebar {{
+        background-color: #f9f9f9;
+        border-right: 1px solid #e5e5e5;
+    }}
+    QToolButton#navigationButton {{
+        color: #5f5f5f;
+        border-radius: 5px;
+    }}
+    QToolButton#navigationButton:hover {{ background-color: #f0f0f0; color: #1f1f1f; }}
+    QToolButton#navigationButton:checked {{
+        background-color: #e8f1fb;
+        color: #0067c0;
+        border-color: #b9d5ee;
+    }}
+    QFrame#sidePanel, QFrame#rightPanel, QFrame#centerPanel {{
+        background-color: #f9f9f9;
+        border-color: #e5e5e5;
+    }}
+    QLabel#sectionTitle {{
+        color: #1f1f1f;
+        font-size: 14px;
+        font-weight: 650;
+    }}
+    QLabel#sectionSubtitle {{
+        color: #707070;
+        font-size: 11px;
+    }}
+    QFrame#card, QGroupBox {{
+        background-color: #ffffff;
+        border-color: #e5e5e5;
+        border-radius: 5px;
+    }}
+    QGroupBox::title {{ background-color: #ffffff; color: #1f1f1f; }}
+    QPushButton {{
+        background-color: #ffffff;
+        color: #1f1f1f;
+        border-color: #d1d1d1;
+        border-radius: 4px;
+    }}
+    QPushButton:hover {{ background-color: #f3f3f3; border-color: #0067c0; }}
+    QPushButton[class="primary"] {{
+        background-color: #0067c0;
+        border-color: #0067c0;
+        color: #ffffff;
+    }}
+    QPushButton[class="primary"]:hover {{
+        background-color: #005aab;
+        border-color: #005aab;
+    }}
+    QToolButton#windowActionBtn {{
+        background-color: #ffffff;
+        color: #424242;
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        padding: 4px 10px;
+    }}
+    QToolButton#windowActionBtn:hover {{
+        background-color: #f3f3f3;
+        border-color: #0067c0;
+        color: #0067c0;
+    }}
+    QToolButton#toolbarButton {{
+        color: #0067c0;
+        border-radius: 4px;
+        padding: 2px 6px;
+    }}
+    QToolButton#toolbarButton:hover {{
+        background-color: #e8f1fb;
+    }}
+    QWidget#optionsBar QLabel {{
+        color: #5f5f5f;
+        font-size: 11px;
+    }}
+    QWidget#optionsBar QComboBox {{
+        min-height: 22px;
+        padding: 2px 8px;
+    }}
+    QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTextEdit, QPlainTextEdit {{
+        background-color: #ffffff;
+        color: #1f1f1f;
+        border-color: #d1d1d1;
+    }}
+    QListWidget, QTableWidget, QTreeWidget {{
+        background-color: #ffffff;
+        color: #1f1f1f;
+        border-color: #e5e5e5;
+    }}
+    QListWidget::item:selected {{
+        background-color: #e8f1fb;
+        color: #0067c0;
+        border-left-color: #0067c0;
+    }}
+    QHeaderView::section {{
+        background-color: #f3f3f3;
+        color: #5f5f5f;
+        border-bottom-color: #e5e5e5;
+        padding: 4px 8px;
+    }}
+    QTableWidget, QListWidget {{
+        alternate-background-color: #fbfbfb;
+    }}
+    QTableWidget::item {{
+        padding: 4px 6px;
+        border-bottom: 1px solid #f0f0f0;
+    }}
+    QStatusBar {{
+        background-color: #ffffff;
+        color: #5f5f5f;
+        border-top-color: #e5e5e5;
+    }}
+    QFrame#patientBanner {{
+        background-color: #ffffff;
+        border-bottom: 1px solid #e5e5e5;
+    }}
+    QLabel#patientName {{
+        color: #1f1f1f;
+        font-size: 15px;
+        font-weight: 700;
+    }}
+    QLabel#patientMeta, QLabel#patientFieldLabel {{
+        color: #707070;
+        font-size: 10px;
+    }}
+    QLabel#patientFieldValue {{
+        color: #1f1f1f;
+        font-size: 12px;
+        font-weight: 600;
+    }}
+    QFrame#patientAlert, QFrame#patientWarning {{
+        border-radius: 4px;
+        padding: 1px;
+    }}
+    QFrame#patientAlert {{
+        background-color: #fff1f0;
+        border: 1px solid #f1b9b7;
+    }}
+    QFrame#patientWarning {{
+        background-color: #fff8e6;
+        border: 1px solid #e5c365;
+    }}
+    QFrame#patientAlert QLabel {{
+        color: #a4262c;
+        font-size: 10px;
+    }}
+    QFrame#patientWarning QLabel {{
+        color: #7a4d00;
+        font-size: 10px;
+    }}
+    QTextEdit {{
+        font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
+        font-size: 12px;
+    }}
+    QToolButton[class="iconBtn"] {{
+        color: #0067c0;
+        background-color: #f3f7fb;
+        border: 1px solid #d5e5f4;
+        border-radius: 4px;
+        padding: 3px 4px;
+    }}
+    QToolButton[class="iconBtn"]:hover {{
+        background-color: #e8f1fb;
+        border-color: #0067c0;
+    }}
+    /* ===== MOCKUP-MATCHED FLUENT CHROME ===== */
+    QMainWindow, QWidget {{
+        background-color: #f6f8fb;
+        color: #0f172a;
+        font-family: "Inter", "Segoe UI Variable", "Segoe UI", sans-serif;
+    }}
+    QWidget#appMenuBar, QWidget#optionsBar, QWidget#topTabs {{
+        background-color: #ffffff;
+        border-bottom: 1px solid #e4e9f0;
+    }}
+    QWidget#appMenuBar {{
+        min-height: 44px;
+    }}
+    QLabel#appLogo {{
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0;
+        border: none;
+        border-radius: 7px;
+        color: #ffffff;
+        background-color: #0b6bcb;
+        font-size: 11px;
+        font-weight: 800;
+    }}
+    QToolButton#appMenuItem {{
+        color: #334155;
+        border-radius: 4px;
+        padding: 7px 10px;
+        font-size: 12px;
+        font-weight: 500;
+    }}
+    QToolButton#appMenuItem:hover {{
+        color: #0b6bcb;
+        background-color: #f0f3f8;
+    }}
+    QWidget#optionsBar {{
+        background-color: #fafbfd;
+    }}
+    QWidget#optionsBar QLabel, QLabel#toolbarLabel, QLabel#toolbarHint {{
+        color: #64748b;
+        font-size: 11px;
+    }}
+    QToolButton#toolbarButton {{
+        min-width: 30px;
+        min-height: 30px;
+        color: #334155;
+        border-radius: 4px;
+        font-size: 15px;
+    }}
+    QToolButton#toolbarButton:hover {{
+        color: #0b6bcb;
+        background-color: #eaf3fb;
+    }}
+    QWidget#optionsBar QLineEdit, QWidget#optionsBar QComboBox {{
+        background-color: #ffffff;
+        border: 1px solid #cfd7e3;
+        border-radius: 6px;
+        color: #0f172a;
+        font-size: 12px;
+    }}
+    QWidget#optionsBar QLineEdit {{
+        padding: 0 11px;
+    }}
+    QWidget#topTabs {{
+        background-color: #ffffff;
+    }}
+    QToolButton#topTab {{
+        min-height: 46px;
+        padding: 0 16px;
+        border: none;
+        border-radius: 0;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+    }}
+    QToolButton#topTab:hover {{
+        color: #0f172a;
+        background-color: #fafbfd;
+    }}
+    QToolButton#topTab:checked {{
+        color: #0b6bcb;
+        background-color: #eaf3fb;
+        border-bottom: 2px solid #0b6bcb;
+    }}
+    QFrame#patientBanner {{
+        background-color: #ffffff;
+        border-bottom: 1px solid #e4e9f0;
+    }}
+    QLabel#patientAvatar {{
+        min-width: 42px;
+        min-height: 42px;
+        max-width: 42px;
+        max-height: 42px;
+        qproperty-alignment: AlignCenter;
+        border: 2px solid #ffffff;
+        border-radius: 21px;
+        color: #0b6bcb;
+        background-color: #dbe9f8;
+        font-size: 14px;
+        font-weight: 700;
+    }}
+    QLabel#patientName {{
+        color: #0f172a;
+        font-size: 16px;
+        font-weight: 700;
+    }}
+    QLabel#patientMeta, QLabel#patientFieldLabel {{
+        color: #94a3b8;
+        font-size: 10px;
+    }}
+    QLabel#patientFieldValue {{
+        color: #0f172a;
+        font-size: 12px;
+        font-weight: 600;
+    }}
+    QFrame#patientAlert, QFrame#patientWarning {{
+        border-radius: 6px;
+    }}
+    QFrame#patientAlert {{
+        background-color: #fdeceb;
+        border: 1px solid #f5c2be;
+    }}
+    QFrame#patientWarning {{
+        background-color: #fff8e6;
+        border: 1px solid #f0d69a;
+    }}
+    QFrame#patientAlert QLabel {{
+        color: #c42b1c;
+        font-size: 10px;
+    }}
+    QFrame#patientWarning QLabel {{
+        color: #b45309;
+        font-size: 10px;
+    }}
+    QFrame#sidePanel, QFrame#rightPanel {{
+        background-color: #fafbfd;
+        border-color: #e4e9f0;
+    }}
+    QFrame#centerPanel {{
+        background-color: #f6f8fb;
+    }}
+    QFrame#card, QGroupBox {{
+        background-color: #ffffff;
+        border: 1px solid #e4e9f0;
+        border-radius: 10px;
+    }}
+    QGroupBox::title {{
+        background-color: #ffffff;
+        color: #334155;
+    }}
+    QListWidget, QTableWidget, QTreeWidget, QTextEdit, QLineEdit, QComboBox {{
+        background-color: #ffffff;
+        color: #0f172a;
+        border-color: #cfd7e3;
+        border-radius: 6px;
+    }}
+    QPushButton {{
+        background-color: #ffffff;
+        color: #334155;
+        border: 1px solid #cfd7e3;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }}
+    QPushButton:hover {{
+        background-color: #eaf3fb;
+        border-color: #0b6bcb;
+        color: #0b6bcb;
+    }}
+    QPushButton[class="primary"] {{
+        color: #ffffff;
+        background-color: #0b6bcb;
+        border-color: #0b6bcb;
+    }}
+    QPushButton[class="primary"]:hover {{
+        background-color: #0958a8;
+        border-color: #0958a8;
+    }}
+    QStatusBar {{
+        min-height: 28px;
+        background-color: #ffffff;
+        border-top: 1px solid #e4e9f0;
+        color: #64748b;
+        font-size: 11px;
+    }}
     """
