@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/logo.png" alt="NeuralEyeTracker Logo" width="420" />
+  <img src="Docs/logo.png" alt="NeuralEyeTracker Logo" width="420" />
 
   <p><sub>Adaptive oculometric &amp; pupillometric research application — Project structure &amp; architecture overview</sub></p>
 
