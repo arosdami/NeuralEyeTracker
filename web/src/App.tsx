@@ -16,6 +16,13 @@ type TrackerState = {
   neural_az: number | null;
   neural_el: number | null;
   raw_data: Record<string, unknown> | null;
+  calibration_active: boolean;
+  calibration_index: number;
+  calibration_total: number;
+  calibration_samples: number;
+  calibration_samples_required: number;
+  calibration_x: number | null;
+  calibration_y: number | null;
 };
 
 const EMPTY_STATE: TrackerState = {
@@ -23,6 +30,9 @@ const EMPTY_STATE: TrackerState = {
   model_trained: false, camera_index: 0, fps: 0, confidence: null,
   cx: null, cy: null, pupil_size: null, radius_px: null,
   neural_az: null, neural_el: null, raw_data: null,
+  calibration_active: false, calibration_index: 0, calibration_total: 48,
+  calibration_samples: 0, calibration_x: null, calibration_y: null,
+  calibration_samples_required: 15,
 };
 
 const shown = (number: number | null, digits = 2, unit = "") =>
@@ -61,6 +71,13 @@ export default function App() {
     await refresh();
   }, [refresh]);
 
+  const startCalibration = useCallback(async () => {
+    const response = await fetch("/api/calibration/start", { method: "POST" });
+    const result = await response.json() as { ok: boolean; error?: string };
+    if (!result.ok) setError(result.error ?? "A kalibráció nem indítható.");
+    await refresh();
+  }, [refresh]);
+
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => void refresh(), 500);
@@ -72,6 +89,11 @@ export default function App() {
     const timer = window.setInterval(() => setFrame(Date.now()), 160);
     return () => window.clearInterval(timer);
   }, [tracker.running]);
+
+  useEffect(() => {
+    if (!tracker.calibration_active) return;
+    void fetch("/api/calibration/target", { method: "POST" });
+  }, [tracker.calibration_active, tracker.calibration_index]);
 
   const statusText = useMemo(() => {
     if (tracker.status === "tracking") return "Detektor: Stabil";
@@ -122,7 +144,7 @@ export default function App() {
         </div>
         <div className="alert-cards">
           <div className="alert-card rose"><small>Allergiák / Mellékhatások</small><b>—</b></div>
-          <div className="alert-card amber"><small>Figyelmeztetések</small><b>{tracker.model_trained ? "Nincs" : "Kalibráció szükséges"}</b></div>
+          <div className="alert-card amber"><div><small>Figyelmeztetések</small><b>{tracker.model_trained ? "Nincs" : "Kalibráció szükséges"}</b></div><button onClick={() => void startCalibration()}>Kalibrálás</button></div>
         </div>
         <div className="tabs"><button className="selected">▦ &nbsp; Összegzés</button><button>⌁ &nbsp; Aktuális kezelés</button><button>◷ &nbsp; Kórtörténet</button><button>▤ &nbsp; Leletek</button><button>▱ &nbsp; Dokumentumok</button><button>▣ &nbsp; Számlázás</button></div>
       </section>
@@ -154,7 +176,7 @@ export default function App() {
             <div className="work-buttons"><button>◉ &nbsp; Élő hőtérkép</button><button className="primary-small">▤ &nbsp; Riport</button></div>
             <div className="report-strip"><span>▧ &nbsp; Élő tracker adatfolyam</span><span>{tracker.running ? "Kamera csatlakoztatva" : "Nincs elindított mérés"}</span></div>
             <div className="camera-view">
-              {tracker.running ? <img src={`/api/frame.jpg?ts=${frame}`} alt="Élő kamera és detektor kép" /> : <div className="camera-placeholder"><b>Élő kamerakép</b><span>A mérés indításához kattints a Rögzítés gombra.</span></div>}
+              {tracker.running ? <><img src={`/api/frame.jpg?ts=${frame}`} alt="Élő kamera és detektor kép" />{tracker.calibration_active && <div className="calibration-overlay"><div className="calibration-target" style={{ left: `${(tracker.calibration_x ?? 0.5) * 100}%`, top: `${(tracker.calibration_y ?? 0.5) * 100}%` }} /><span>Kalibráció {tracker.calibration_index + 1} / {tracker.calibration_total}</span><small>Nézz a pontra · {tracker.calibration_samples} / {tracker.calibration_samples_required} minta</small></div>}</> : <div className="camera-placeholder"><b>Élő kamerakép</b><span>A mérés indításához kattints a Rögzítés gombra.</span></div>}
             </div>
             <div className="interpretation"><h3><span>5</span> Szakmai értelmezés</h3><p>Az értelmezés csak kalibrált, érvényes neurális modell esetén jelenik meg.</p><div className="notice">A rendszer nem generál klinikai következtetést hiányos vagy kalibrálatlan mérésből.</div></div>
           </Card>

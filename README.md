@@ -15,7 +15,7 @@ Professional pupil and gaze tracking application for research and clinical workf
 ## Project layout
 
 - `main.py` - application entry point
-- `web/` - local React/Vite clinical workspace viewer
+- `web/` - local React/Vite clinical workspace and Python tracker bridge
 - `config/` - paths, settings and release metadata
 - `core/` - tracking, analysis, projects and updates
 - `ui/` - PyQt5 windows and widgets
@@ -25,20 +25,21 @@ Professional pupil and gaze tracking application for research and clinical workf
 
 ## Local React clinical workspace
 
-The clinical workspace preview runs locally through a React/Vite development
-server. It preserves the visual and interactive behavior of
-`neural_eye_tracker_klinikai_munkater_let.html` while providing a React entry
-point for later component-by-component migration.
+The clinical workspace runs locally through React/Vite and connects to the
+real camera-processing core through `web/backend_server.py`. It is not a
+dummy-data preview: the camera frame, pupil geometry, confidence and
+calibration state come from the Python tracker.
 
 ```powershell
 Set-Location .\web
-npm install
-npm run dev
+.\indit-klinikai-munkater.bat
 ```
 
-Open `http://127.0.0.1:5173/` in a browser. The legacy clinical workspace is
-served by the Vite middleware from the repository root, so it does not need to
-be copied or duplicated.
+The script starts the Python API on `http://127.0.0.1:8765` and the React
+interface on `http://127.0.0.1:5173/`. Click **Rögzítés** to open the camera,
+then **Kalibrálás** to collect the configured gaze samples. If no camera is
+available, the interface reports the real error instead of displaying
+generated measurements.
 
 ## Runtime data
 
