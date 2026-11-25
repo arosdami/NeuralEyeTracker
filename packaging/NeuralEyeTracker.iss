@@ -1,5 +1,5 @@
 #define AppName "Neural Eye Tracker"
-#define AppVersion "1.0.3"
+#define AppVersion "1.0.31"
 #define AppPublisher "Neural Eye Lab"
 #define AppExeName "NeuralEyeTracker.exe"
 
