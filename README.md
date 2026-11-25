@@ -1,80 +1,104 @@
-# Neural Eye Tracker
+# NeuralEyeTracker – Projekt Struktúra és Architektúra
 
-Professional pupil and gaze tracking application for research and clinical workflows.
+Ez a dokumentum a **NeuralEyeTracker** szakdolgozati alkalmazás könyvtárszerkezetét, főbb moduljait és a projekt felépítését foglalja össze. A dokumentáció célja, hogy átlátható képet adjon a forráskódról, a kísérleti erőforrásokról, a webes felületről, valamint a telepítőcsomag készítéséhez tartozó könyvtárakról.
 
-## Features
+---
 
-- Real-time pupil detection with multi-stage pipeline
-- Neural network gaze prediction (MLP with 4 layers)
-- 3D eye model with OpenGL
-- 9-point calibration system
-- ROI selection
-- Real-time heatmap
-- Professional UI with dark theme
+## 1. Tisztított könyvtárszerkezet
 
-## Project layout
+Az alábbi fa a projekt érdemi szerkezetét mutatja be (a generált fájlok, gyorsítótárak és harmadik féltől származó függőségek részletezése nélkül):
 
-- `main.py` - application entry point
-- `web/` - local React/Vite clinical workspace and Python tracker bridge
-- `config/` - paths, settings and release metadata
-- `core/` - tracking, analysis, projects and updates
-- `ui/` - PyQt5 windows and widgets
-- `resources/` - read-only application resources
-- `stimuli/` - read-only stimulus resources
-- `packaging/` - PyInstaller and Inno Setup build files
-
-## Local React clinical workspace
-
-The clinical workspace runs locally through React/Vite and connects to the
-real camera-processing core through `web/backend_server.py`. It is not a
-dummy-data preview: the camera frame, pupil geometry, confidence and
-calibration state come from the Python tracker.
-
-```powershell
-Set-Location .\web
-.\indit-klinikai-munkater.bat
+```text
+NeuralEyeTracker/
+├── config/                  # Alkalmazás- és környezeti konfigurációk
+├── core/                    # Központi üzleti logika, szemkövetési és feldolgozási motor
+├── ui/                      # Asztali felhasználói felület (Python GUI modulok)
+├── utils/                   # Segédfüggvények, közös eszközök és kiegészítő modulok
+├── resources/               # Statikus erőforrások (ikonok, stílusok, médiafájlok)
+├── stimuli/                 # Kísérleti vizuális ingerek érzelmi kategóriák szerint
+│   ├── neutral/             # Semleges ingerek
+│   ├── positive/            # Pozitív ingerek
+│   ├── negative/            # Negatív ingerek
+│   ├── threat/              # Fenyegető ingerek
+│   └── trauma/              # Traumához kapcsolódó ingerek
+├── web/                     # Webes modul (React + TypeScript + Vite)
+│   ├── src/                 # Webes alkalmazás forráskódja
+│   └── dist/                # Buildelt, éles webes kimenet (assets/)
+├── packaging/               # Csomagolási konfigurációk és build szkriptek
+├── installer/               # Telepítőcsomag (installer) forrásai és beállításai
+├── Docs/                    # Projekt- és szakdolgozati dokumentációk
+├── .venv/                   # [Generált] Python virtuális környezet
+├── build-installer/         # [Generált] Ideiglenes build fájlok (pl. PyInstaller)
+└── dist-installer/          # [Generált] Elkészült végleges telepítő/bináris kimenet
 ```
 
-The script starts the Python API on `http://127.0.0.1:8765` and the React
-interface on `http://127.0.0.1:5173/`. Click **Rögzítés** to open the camera,
-then **Kalibrálás** to collect the configured gaze samples. If no camera is
-available, the interface reports the real error instead of displaying
-generated measurements.
+---
 
-## Runtime data
+## 2. Modulok és könyvtárak részletes leírása
 
-The application stores user accounts, reports, calibration models and settings in
-`%LOCALAPPDATA%\NeuralEyeTracker` on Windows. Project files and stimuli remain
-read-only application resources, so the installed application does not need
-write access to `Program Files`.
+### Alkalmazásmag (Python)
 
-## Portable build
+| Könyvtár | Feladatkör |
+| :--- | :--- |
+| **`config/`** | Globális beállítások, paraméterek, elérési utak és futásidejű konfigurációk tárolása. |
+| **`core/`** | A rendszer magja: szemkövetési algoritmusok, adatfeldolgozás, neurális/analitikai feldolgozó réteg és kísérletvezérlés. |
+| **`ui/`** | Az asztali felhasználói felület komponensei, ablakok, nézetek és interakciós logika. |
+| **`utils/`** | Újrafelhasználható segédmodulok (pl. fájlkezelés, naplózás, adatformázás, validáció). |
+| **`resources/`** | A felülethez és a működéshez szükséges statikus erőforrások (képek, ikonok, sablonok). |
 
-Install the development dependencies and build the application folder:
+### Kísérleti adatbázis (`stimuli/`)
 
-```powershell
-python -m pip install -r requirements-dev.txt
-.\packaging\build-portable.ps1
+A könyvtár a szemkövetéses vizsgálatok során megjelenített ingereket csoportosítja affektív/érzelmi kategóriák mentén:
+* **`neutral/`** – Kontrollként szolgáló, érzelmileg semleges ingerek.
+* **`positive/`** – Pozitív érzelmi töltetű ingerek.
+* **`negative/`** – Általános negatív érzelmi töltetű ingerek.
+* **`threat/`** – Fenyegetettséget vagy veszélyt kiváltó ingerek.
+* **`trauma/`** – Specifikus, traumával összefüggő kísérleti ingerek.
+
+### Webes komponens (`web/`)
+
+A könyvtár egy modern frontend alkalmazást foglal magában az alábbi technológiai stackkel (a `node_modules` alapján):
+* **Keretrendszer:** React (`react`, `react-dom`)
+* **Nyelv:** TypeScript (`typescript`)
+* **Build eszköz:** Vite (`vite`, `@vitejs/plugin-react`, `esbuild`, `rollup`)
+* **Főbb almappák:**
+  * `web/src/` – A komponensek és a kliensoldali logika forráskódja.
+  * `web/dist/` – A `vite build` parancs által előállított, optimalizált kimeneti fájlok (`assets/`).
+
+### Csomagolás, telepítés és dokumentáció
+
+| Könyvtár | Feladatkör |
+| :--- | :--- |
+| **`packaging/`** | A Python alkalmazás binárissá fordításához szükséges specifikációk és szkriptek. |
+| **`installer/`** | A végfelhasználói telepítő (pl. Inno Setup / NSIS) konfigurációs fájljai. |
+| **`Docs/`** | Rendszertervek, fejlesztői jegyzetek és a szakdolgozathoz tartozó mellékletek. |
+
+---
+
+## 3. Generált könyvtárak és verziókezelési javaslat
+
+Az alábbi könyvtárak automatikusan jönnek létre fejlesztés vagy build során, ezért **nem javasolt** őket verziókezelőbe (Git) feltölteni:
+
+* `**/__pycache__/` – Python bájtkód gyorsítótár.
+* `.venv/` – Helyi Python virtuális környezet (helyette `requirements.txt` vagy `pyproject.toml` ajánlott).
+* `web/node_modules/` – Telepített npm csomagok (helyette `package.json` és `package-lock.json` kezelendő).
+* `web/dist/` – Fordított frontend kimenet.
+* `build-installer/` és `dist-installer/` – Telepítő készítésekor keletkező átmeneti és végleges build termékek.
+
+### Ajánlott `.gitignore` részlet
+
+```gitignore
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Build és telepítő kimenetek
+build-installer/
+dist-installer/
+
+# Web / Node.js
+web/node_modules/
+web/dist/
+web/.vite/
 ```
-
-The executable is created at
-`dist\NeuralEyeTracker.exe`. It can be copied to another Windows machine without
-installing Python.
-
-## Windows installer
-
-Install Inno Setup 6, then run:
-
-```powershell
-python -m pip install -r requirements-dev.txt
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\packaging\build-installer.ps1
-```
-
-The installer is created at `installer\NeuralEyeTracker-Setup.exe`.
-
-## Updates
-
-Updates are read from the GitHub Releases of `arosdami/NeuralEyeTracker`.
-Make this repository public and publish each installer as a Release asset
-whose filename contains `Setup` and ends in `.exe`. The application can then
-download and launch the installer from the Help menu or the System page.
